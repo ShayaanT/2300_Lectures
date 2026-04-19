@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PHYS 2300 — Quantum Computing Notes</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']], tags:'ams' },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+/* ══════════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #080c18;
+  --bg2:       #0e1525;
+  --bg3:       #131c30;
+  --panel:     #111827;
+  --border:    #1e2d4a;
+  --accent1:   #38bdf8;  /* cyan */
+  --accent2:   #818cf8;  /* indigo */
+  --accent3:   #34d399;  /* green */
+  --accent4:   #f472b6;  /* pink */
+  --accent5:   #fb923c;  /* orange */
+  --text:      #e2e8f0;
+  --text2:     #94a3b8;
+  --text3:     #64748b;
+  --sidebar-w: 280px;
+  --header-h:  60px;
+  --radius:    10px;
+  --trans:     0.25s ease;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════════════
+   CANVAS BACKGROUND
+══════════════════════════════════════════════ */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+/* ══════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════ */
+header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: rgba(8,12,24,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+}
+
+.header-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--accent1), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+}
+
+.header-sub {
+  font-size: 0.75rem;
+  color: var(--text3);
+}
+
+.header-spacer { flex: 1; }
+
+/* Search */
+.search-wrap {
+  position: relative;
+  width: 220px;
+}
+#search-input {
+  width: 100%;
+  padding: 6px 12px 6px 34px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color var(--trans);
+}
+#search-input:focus { border-color: var(--accent1); }
+#search-input::placeholder { color: var(--text3); }
+.search-icon {
+  position: absolute;
+  left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text3);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+/* Progress bar */
+#progress-bar {
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent1), var(--accent2), var(--accent4));
+  z-index: 101;
+  width: 0%;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px var(--accent1);
+}
+
+/* Hamburger */
+#menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 1.3rem;
+  padding: 4px 6px;
+}
+
+/* ══════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════ */
+.layout {
+  display: flex;
+  min-height: 100vh;
+  padding-top: var(--header-h);
+  position: relative;
+  z-index: 1;
+}
+
+/* ══════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════ */
+#sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  bottom: 0;
+  background: rgba(13,18,28,0.92);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px 0 40px;
+  z-index: 90;
+  transition: transform var(--trans);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-track { background: transparent; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.sidebar-section {
+  padding: 6px 0;
+}
+
+.sidebar-group-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 10px 20px 4px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  font-size: 0.82rem;
+  color: var(--text2);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: all var(--trans);
+  cursor: pointer;
+  border-radius: 0 6px 6px 0;
+  margin: 1px 8px 1px 0;
+}
+.sidebar-link:hover {
+  color: var(--text);
+  background: rgba(56,189,248,0.07);
+  border-left-color: var(--accent1);
+}
+.sidebar-link.active {
+  color: var(--accent1);
+  background: rgba(56,189,248,0.1);
+  border-left-color: var(--accent1);
+  font-weight: 600;
+}
+.sidebar-badge {
+  margin-left: auto;
+  font-size: 0.65rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1px 7px;
+  color: var(--text3);
+}
+
+/* ══════════════════════════════════════════════
+   MAIN CONTENT
+══════════════════════════════════════════════ */
+main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  padding: 40px 40px 80px;
+  max-width: 900px;
+}
+
+/* ══════════════════════════════════════════════
+   HERO BANNER
+══════════════════════════════════════════════ */
+.hero {
+  background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(129,140,248,0.08));
+  border: 1px solid rgba(56,189,248,0.2);
+  border-radius: 16px;
+  padding: 36px 40px;
+  margin-bottom: 48px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(56,189,248,0.06) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 50%, rgba(129,140,248,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero h1 {
+  font-size: 1.9rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--accent1), var(--accent2), var(--accent4));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+.hero p { color: var(--text2); font-size: 0.95rem; }
+.hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.chip {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.chip-cyan  { background: rgba(56,189,248,0.12);  color: var(--accent1); border: 1px solid rgba(56,189,248,0.25); }
+.chip-indigo{ background: rgba(129,140,248,0.12); color: var(--accent2); border: 1px solid rgba(129,140,248,0.25); }
+.chip-green { background: rgba(52,211,153,0.12);  color: var(--accent3); border: 1px solid rgba(52,211,153,0.25); }
+.chip-pink  { background: rgba(244,114,182,0.12); color: var(--accent4); border: 1px solid rgba(244,114,182,0.25); }
+.chip-orange{ background: rgba(251,146,60,0.12);  color: var(--accent5); border: 1px solid rgba(251,146,60,0.25); }
+
+/* ══════════════════════════════════════════════
+   LECTURE CARDS
+══════════════════════════════════════════════ */
+.lecture-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 28px;
+  overflow: hidden;
+  transition: box-shadow var(--trans);
+  animation: fadeSlideUp 0.4s ease both;
+}
+.lecture-card:hover {
+  box-shadow: 0 0 0 1px rgba(56,189,248,0.15), 0 8px 32px rgba(0,0,0,0.4);
+}
+
+@keyframes fadeSlideUp {
+  from { opacity:0; transform: translateY(18px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 22px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: background var(--trans), border-color var(--trans);
+}
+.card-header:hover { background: rgba(255,255,255,0.02); }
+.card-header.open  { border-bottom-color: var(--border); }
+
+.card-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.card-meta { flex: 1; min-width: 0; }
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-subtitle {
+  font-size: 0.75rem;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.card-chevron {
+  transition: transform 0.3s ease;
+  color: var(--text3);
+  font-size: 0.9rem;
+}
+.card-header.open .card-chevron { transform: rotate(180deg); }
+
+.card-body {
+  display: none;
+  padding: 0 22px 22px;
+  animation: expandIn 0.3s ease;
+}
+.card-body.open { display: block; }
+
+@keyframes expandIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════════════
+   SECTION HEADINGS
+══════════════════════════════════════════════ */
+.card-body h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent1);
+  margin: 24px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-body h3::before {
+  content: '▸';
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+/* ══════════════════════════════════════════════
+   LISTS
+══════════════════════════════════════════════ */
+.card-body ul {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 14px;
+}
+.card-body ul li {
+  padding: 4px 0 4px 20px;
+  position: relative;
+  font-size: 0.9rem;
+  color: var(--text2);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.card-body ul li::before {
+  content: '›';
+  position: absolute;
+  left: 4px;
+  color: var(--accent2);
+  font-weight: 700;
+}
+.card-body ul li:last-child { border-bottom: none; }
+
+.card-body ol {
+  padding-left: 20px;
+  margin: 6px 0 14px;
+}
+.card-body ol li {
+  padding: 4px 0;
+  font-size: 0.9rem;
+  color: var(--text2);
+}
+.card-body ol li::marker { color: var(--accent2); }
+
+/* ══════════════════════════════════════════════
+   BOLD / HIGHLIGHT
+══════════════════════════════════════════════ */
+.card-body strong {
+  color: var(--text);
+  font-weight: 700;
+}
+.card-body em {
+  color: var(--accent4);
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════════════
+   CALLOUT BOXES
+══════════════════════════════════════════════ */
+.callout {
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  font-size: 0.88rem;
+  border-left: 3px solid;
+  line-height: 1.6;
+}
+.callout-cyan   { background: rgba(56,189,248,0.07);  border-color: var(--accent1); color: #a5d8f3; }
+.callout-green  { background: rgba(52,211,153,0.07);  border-color: var(--accent3); color: #9fe6ca; }
+.callout-orange { background: rgba(251,146,60,0.07);  border-color: var(--accent5); color: #fbbf87; }
+.callout-pink   { background: rgba(244,114,182,0.07); border-color: var(--accent4); color: #f9a8d4; }
+.callout-indigo { background: rgba(129,140,248,0.07); border-color: var(--accent2); color: #c7d2fe; }
+
+.callout .callout-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: 0.8;
+}
+
+/* ══════════════════════════════════════════════
+   TABLES
+══════════════════════════════════════════════ */
+.table-wrap {
+  overflow-x: auto;
+  margin: 12px 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+thead tr { background: var(--bg3); }
+thead th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent1);
+  border-bottom: 1px solid var(--border);
+}
+tbody tr { transition: background var(--trans); }
+tbody tr:hover { background: rgba(255,255,255,0.03); }
+tbody td {
+  padding: 9px 14px;
+  color: var(--text2);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.83rem;
+}
+tbody tr:last-child td { border-bottom: none; }
+
+/* ══════════════════════════════════════════════
+   MATH / CODE BLOCKS
+══════════════════════════════════════════════ */
+.math-block {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 10px 0;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.9;
+}
+
+code {
+  font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+  background: var(--bg3);
+  color: var(--accent3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+/* ══════════════════════════════════════════════
+   STEP TIMELINE
+══════════════════════════════════════════════ */
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 16px;
+  position: relative;
+}
+.steps::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--accent1), var(--accent2), transparent);
+  opacity: 0.3;
+}
+.steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 8px 0 8px 0;
+  font-size: 0.88rem;
+  color: var(--text2);
+  position: relative;
+}
+.step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent1), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 10px rgba(56,189,248,0.3);
+}
+
+/* ══════════════════════════════════════════════
+   COMPARISON GRID
+══════════════════════════════════════════════ */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+.compare-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 0.83rem;
+}
+.compare-box .compare-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.compare-box.classical .compare-label { color: var(--accent5); }
+.compare-box.quantum   .compare-label { color: var(--accent1); }
+.compare-box ul { margin: 0; }
+.compare-box ul li { font-size: 0.83rem; border-bottom: none; }
+
+/* ══════════════════════════════════════════════
+   COLLAPSE ALL BUTTON + BACK TO TOP
+══════════════════════════════════════════════ */
+.action-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--trans);
+  border: 1px solid;
+  letter-spacing: 0.03em;
+}
+.btn-outline {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text2);
+}
+.btn-outline:hover {
+  border-color: var(--accent1);
+  color: var(--accent1);
+  background: rgba(56,189,248,0.06);
+}
+.btn-solid {
+  background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(129,140,248,0.15));
+  border-color: rgba(56,189,248,0.3);
+  color: var(--accent1);
+}
+.btn-solid:hover {
+  background: linear-gradient(135deg, rgba(56,189,248,0.25), rgba(129,140,248,0.25));
+  box-shadow: 0 0 12px rgba(56,189,248,0.2);
+}
+
+#back-top {
+  position: fixed;
+  bottom: 36px;
+  right: 30px;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent1), var(--accent2));
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all var(--trans);
+  z-index: 200;
+  box-shadow: 0 4px 16px rgba(56,189,248,0.35);
+}
+#back-top.visible { opacity: 1; transform: translateY(0); }
+#back-top:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(56,189,248,0.5); }
+
+/* ══════════════════════════════════════════════
+   SEARCH HIGHLIGHT
+══════════════════════════════════════════════ */
+.highlight-match {
+  background: rgba(251,191,36,0.3);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 260px; }
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: translateX(0); }
+  main { margin-left: 0; padding: 20px 18px 60px; }
+  #menu-btn { display: block; }
+  .hero { padding: 22px 20px; }
+  .hero h1 { font-size: 1.4rem; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .search-wrap { width: 160px; }
+  #back-top { right: 16px; bottom: 20px; }
+}
+
+/* Overlay for mobile sidebar */
+#overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 85;
+}
+#overlay.open { display: block; }
+
+/* ══════════════════════════════════════════════
+   ACCENT COLORS PER LECTURE
+══════════════════════════════════════════════ */
+.lc-week1  { background: linear-gradient(135deg,rgba(56,189,248,0.15),rgba(56,189,248,0.08)); }
+.lc-l2     { background: linear-gradient(135deg,rgba(129,140,248,0.15),rgba(129,140,248,0.08)); }
+.lc-l3     { background: linear-gradient(135deg,rgba(52,211,153,0.15),rgba(52,211,153,0.08)); }
+.lc-l4     { background: linear-gradient(135deg,rgba(244,114,182,0.15),rgba(244,114,182,0.08)); }
+.lc-l5     { background: linear-gradient(135deg,rgba(251,146,60,0.15),rgba(251,146,60,0.08)); }
+.lc-l6     { background: linear-gradient(135deg,rgba(56,189,248,0.15),rgba(129,140,248,0.08)); }
+.lc-l7     { background: linear-gradient(135deg,rgba(52,211,153,0.15),rgba(56,189,248,0.08)); }
+.lc-l8     { background: linear-gradient(135deg,rgba(244,114,182,0.15),rgba(251,146,60,0.08)); }
+.lc-l9     { background: linear-gradient(135deg,rgba(129,140,248,0.15),rgba(52,211,153,0.08)); }
+.lc-l10    { background: linear-gradient(135deg,rgba(56,189,248,0.15),rgba(52,211,153,0.08)); }
+.lc-l11    { background: linear-gradient(135deg,rgba(251,146,60,0.15),rgba(129,140,248,0.08)); }
+.lc-l12    { background: linear-gradient(135deg,rgba(244,114,182,0.15),rgba(129,140,248,0.08)); }
+.lc-ref    { background: linear-gradient(135deg,rgba(100,116,139,0.15),rgba(100,116,139,0.08)); }
+
+.lc-week1 .card-icon { background: rgba(56,189,248,0.15);  color: var(--accent1); }
+.lc-l2    .card-icon { background: rgba(129,140,248,0.15); color: var(--accent2); }
+.lc-l3    .card-icon { background: rgba(52,211,153,0.15);  color: var(--accent3); }
+.lc-l4    .card-icon { background: rgba(244,114,182,0.15); color: var(--accent4); }
+.lc-l5    .card-icon { background: rgba(251,146,60,0.15);  color: var(--accent5); }
+.lc-l6    .card-icon { background: rgba(56,189,248,0.15);  color: var(--accent1); }
+.lc-l7    .card-icon { background: rgba(52,211,153,0.15);  color: var(--accent3); }
+.lc-l8    .card-icon { background: rgba(244,114,182,0.15); color: var(--accent4); }
+.lc-l9    .card-icon { background: rgba(129,140,248,0.15); color: var(--accent2); }
+.lc-l10   .card-icon { background: rgba(56,189,248,0.15);  color: var(--accent1); }
+.lc-l11   .card-icon { background: rgba(251,146,60,0.15);  color: var(--accent5); }
+.lc-l12   .card-icon { background: rgba(244,114,182,0.15); color: var(--accent4); }
+.lc-ref   .card-icon { background: rgba(100,116,139,0.15); color: var(--text3); }
+
+/* para spacing */
+.card-body p { font-size: 0.9rem; color: var(--text2); margin: 8px 0; line-height: 1.75; }
+</style>
+</head>
+<body>
+
+<!-- Animated background -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Progress bar -->
+<div id="progress-bar"></div>
+
+<!-- Header -->
+<header>
+  <button id="menu-btn" aria-label="Toggle menu">☰</button>
+  <div>
+    <div class="header-title">⚛ PHYS 2300</div>
+    <div class="header-sub">Quantum Computing</div>
+  </div>
+  <div class="header-spacer"></div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input id="search-input" type="text" placeholder="Search notes…" autocomplete="off"/>
+  </div>
+</header>
+
+<!-- Mobile overlay -->
+<div id="overlay"></div>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav id="sidebar" aria-label="Lecture navigation">
+    <div class="sidebar-section">
+      <div class="sidebar-group-label">Lectures</div>
+      <a class="sidebar-link" href="#week1">📎 Week 1</a>
+      <a class="sidebar-link" href="#lec2">📐 Lecture 2 <span class="sidebar-badge">L2</span></a>
+      <a class="sidebar-link" href="#lec3">🔬 Lecture 3 <span class="sidebar-badge">L3</span></a>
+      <a class="sidebar-link" href="#lec4">🔗 Lecture 4 <span class="sidebar-badge">L4</span></a>
+      <a class="sidebar-link" href="#lec5">⚡ Lecture 5 <span class="sidebar-badge">L5</span></a>
+      <a class="sidebar-link" href="#lec6">⚛ Lecture 6 <span class="sidebar-badge">L6</span></a>
+      <a class="sidebar-link" href="#lec7">🎭 Lecture 7 <span class="sidebar-badge">L7</span></a>
+      <a class="sidebar-link" href="#lec8">🔔 Lecture 8 <span class="sidebar-badge">L8</span></a>
+      <a class="sidebar-link" href="#lec9">🖥 Lecture 9 <span class="sidebar-badge">L9</span></a>
+      <a class="sidebar-link" href="#lec10">🛠 Lecture 10 <span class="sidebar-badge">L10</span></a>
+      <a class="sidebar-link" href="#lec11">〰 Lecture 11 <span class="sidebar-badge">L11</span></a>
+      <a class="sidebar-link" href="#lec12">🔎 Lecture 12 <span class="sidebar-badge">L12</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-group-label">Reference</div>
+      <a class="sidebar-link" href="#notation">🔤 Notation</a>
+      <a class="sidebar-link" href="#speedup">📊 Speedup Table</a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main id="main-content">
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1>PHYS 2300 — Quantum Computing</h1>
+      <p>Complete lecture notes covering linear algebra, quantum mechanics postulates, circuit theory, and quantum algorithms.</p>
+      <div class="hero-chips">
+        <span class="chip chip-cyan">Lectures 2–12</span>
+        <span class="chip chip-indigo">Linear Algebra</span>
+        <span class="chip chip-green">QM Postulates</span>
+        <span class="chip chip-pink">Bell Inequality</span>
+        <span class="chip chip-orange">Grover · Shor · qFT</span>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="action-bar">
+      <button class="btn btn-solid" onclick="expandAll()">▾ Expand All</button>
+      <button class="btn btn-outline" onclick="collapseAll()">▸ Collapse All</button>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- WEEK 1 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-week1" id="week1">
+      <div class="card-header" onclick="toggle(this)">
+        <div class="card-icon">📎</div>
+        <div class="card-meta">
+          <div class="card-title">Week 1 — Introduction</div>
+          <div class="card-subtitle">Week1_2026.pdf · Visual/simulation content</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body">
+        <div class="callout callout-cyan">
+          <div class="callout-label">Note</div>
+          Week 1 slides are almost entirely images and diagrams — no extractable text. The following simulation link was included:
+        </div>
+        <div class="callout callout-indigo">
+          <div class="callout-label">Resource</div>
+          Bloch Sphere Interactive Simulation:<br>
+          <a href="https://www.st-andrews.ac.uk/physics/quvis/simulations_html5/sims/blochsphere/blochsphere.html" target="_blank" style="color:var(--accent1)">
+            st-andrews.ac.uk — Bloch Sphere Sim ↗
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- LECTURE 2 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-l2" id="lec2">
+      <div class="card-header open" onclick="toggle(this)">
+        <div class="card-icon">📐</div>
+        <div class="card-meta">
+          <div class="card-title">Lecture 2 — Linear Operators</div>
+          <div class="card-subtitle">Sections 2.1.2–2.1.4 · Pauli matrices, outer products, matrix reps</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body open">
+
+        <h3>Definitions</h3>
+        <ul>
+          <li>A <strong>linear operator</strong> $A: V \to W$ satisfies $A\!\left(\sum_i a_i|v_i\rangle\right) = \sum_i a_i A|v_i\rangle$</li>
+          <li><strong>Identity operator</strong> $I_V|v\rangle = |v\rangle$ for all $|v\rangle \in V$</li>
+          <li><strong>Zero operator</strong> $0|v\rangle = 0$ for all $|v\rangle \in V$</li>
+          <li><strong>Composition:</strong> if $A: V\to W$ and $B: W\to X$, then $BA: V\to X$</li>
+        </ul>
+
+        <h3>Matrix Representation</h3>
+        <ul>
+          <li>$A|v\rangle_i = \sum_j A_{ji}|w\rangle_j$ → standard matrix multiplication $\vec{b} = A\vec{a}$</li>
+          <li>Composite $C = BA \Rightarrow C_{ki} = \sum_j B_{kj}A_{ji}$</li>
+        </ul>
+
+        <h3>Outer Product Representation</h3>
+        <ul>
+          <li>Operator $A = |w\rangle\langle v|$ acts as $A|\psi\rangle = \langle v|\psi\rangle\,|w\rangle$</li>
+          <li><strong>Completeness relation:</strong> $I = \sum_i |i\rangle\langle i|$ for any orthonormal basis $\{|i\rangle\}$</li>
+        </ul>
+
+        <h3>Pauli Matrices — MEMORIZE</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Gate</th><th>Matrix</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>$I$</td><td>$\begin{pmatrix}1&0\\0&1\end{pmatrix}$</td><td>Identity</td></tr>
+              <tr><td>$X$ (NOT)</td><td>$\begin{pmatrix}0&1\\1&0\end{pmatrix}$</td><td>$X|0\rangle=|1\rangle,\;X|1\rangle=|0\rangle$</td></tr>
+              <tr><td>$Y$</td><td>$\begin{pmatrix}0&-i\\i&0\end{pmatrix}$</td><td>Rotation about $y$-axis</td></tr>
+              <tr><td>$Z$ (phase flip)</td><td>$\begin{pmatrix}1&0\\0&-1\end{pmatrix}$</td><td>$Z=|0\rangle\langle0|-|1\rangle\langle1|$</td></tr>
+              <tr><td>$H$ (Hadamard)</td><td>$\frac{1}{\sqrt{2}}\begin{pmatrix}1&1\\1&-1\end{pmatrix}$</td><td>$H|0\rangle=|{+}\rangle,\;H|1\rangle=|{-}\rangle$</td></tr>
+              <tr><td>$P(\gamma)$ (Phase)</td><td>$\begin{pmatrix}e^{-i\gamma/2}&0\\0&e^{i\gamma/2}\end{pmatrix}$</td><td>Rotation about $z$-axis by $\gamma$</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Key Identities</h3>
+        <div class="math-block">$$X^2 = Y^2 = Z^2 = H^2 = I$$
+$$XY = iZ,\quad YX = -iZ \quad\Rightarrow\text{ gates are non-commutative}$$</div>
+
+        <h3>Cauchy–Schwartz Inequality</h3>
+        <div class="math-block">$$|\langle v|w\rangle|^2 \leq \langle v|v\rangle\langle w|w\rangle$$</div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- LECTURE 3 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-l3" id="lec3">
+      <div class="card-header" onclick="toggle(this)">
+        <div class="card-icon">🔬</div>
+        <div class="card-meta">
+          <div class="card-title">Lecture 3 — Eigenvalues &amp; Operator Functions</div>
+          <div class="card-subtitle">Sections 2.1.5–2.1.9 · Spectral decomposition, Hermitian, unitary operators</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body">
+
+        <h3>Eigenvalues &amp; Eigenvectors</h3>
+        <ul>
+          <li>$A|v\rangle = \lambda|v\rangle$ — eigenvalues from <strong>characteristic equation</strong> $\det(A - \lambda I) = 0$</li>
+          <li>$A$ is <strong>diagonalizable</strong> iff $A = \sum_i \lambda_i|i\rangle\langle i|$</li>
+        </ul>
+
+        <div class="callout callout-green">
+          <div class="callout-label">Example — Pauli Y</div>
+          Eigenvalues $\{-1,+1\}$, eigenvectors $|v_1\rangle = \frac{1}{\sqrt2}\begin{pmatrix}i\\1\end{pmatrix}$ (spin $-y$), $|v_2\rangle = \frac{1}{\sqrt2}\begin{pmatrix}-i\\1\end{pmatrix}$ (spin $+y$)
+        </div>
+
+        <h3>Adjoint Operator</h3>
+        <ul>
+          <li>$A^+ \equiv (A^T)^*$ (conjugate transpose)</li>
+          <li>$(A^+)^+ = A$, &nbsp; $(AB)^+ = B^+A^+$</li>
+          <li>$(a|i\rangle\langle i|)^+ = a^*|i\rangle\langle i|$</li>
+        </ul>
+
+        <h3>Hermitian Operators</h3>
+        <ul>
+          <li>$A$ is <strong>Hermitian</strong> if $A^+ = A$ → all eigenvalues are real</li>
+          <li><strong>Projector</strong> onto $W$: $P = \sum_{i=1}^k |i\rangle\langle i|$, satisfies $P^+ = P$</li>
+          <li><strong>Idempotent:</strong> $P^2 = P$ — "project once; repeated measurement gives same result"</li>
+        </ul>
+
+        <h3>Normal Operators &amp; Spectral Decomposition Theorem</h3>
+        <ul>
+          <li>$A$ is <strong>normal</strong> if $AA^+ = A^+A$</li>
+          <li><em>Theorem:</em> $A$ is normal $\Leftrightarrow$ $A$ is diagonalizable</li>
+          <li><strong>Unitary:</strong> $UU^+ = U^+U = I$ → normal, preserves inner products</li>
+        </ul>
+
+        <h3>Operator Functions</h3>
+        <ul>
+          <li>For Hermitian $A = \sum_i \lambda_i|i\rangle\langle i|$: $f(A) \equiv \sum_i f(\lambda_i)|i\rangle\langle i|$</li>
+        </ul>
+        <div class="callout callout-orange">
+          <div class="callout-label">Key Result</div>
+          $$e^{i\theta\,\vec{v}\cdot\vec{\sigma}} = \cos\theta\,I + i\sin\theta\,(\vec{v}\cdot\vec{\sigma}), \quad |\vec{v}|=1$$
+        </div>
+        <ul>
+          <li>Pauli algebra: $\sigma_i\sigma_j = \delta_{ij}I + i\sum_k \varepsilon_{ijk}\sigma_k$</li>
+          <li>$\{\sigma_i,\sigma_j\} = 2\delta_{ij}I$ &nbsp;(anti-commutator)</li>
+        </ul>
+
+        <h3>Trace</h3>
+        <ul>
+          <li>$\text{tr}(AB) = \text{tr}(BA)$, &nbsp; $\text{tr}(I)=2$, &nbsp; $\text{tr}(\sigma_i)=0$</li>
+          <li>Invariant under unitary similarity: $\text{tr}(UAU^+) = \text{tr}(A)$</li>
+        </ul>
+
+        <h3>Commutator / Anti-commutator</h3>
+        <ul>
+          <li>$[A,B] = AB - BA$; &nbsp; $\{A,B\} = AB + BA$</li>
+          <li>$[\sigma_i,\sigma_j] = 2i\sum_k\varepsilon_{ijk}\sigma_k$; &nbsp; $\{\sigma_i,\sigma_j\} = 2\delta_{ij}I$</li>
+          <li><strong>Theorem:</strong> $[A,B]=0 \Leftrightarrow A,B$ simultaneously diagonalizable → simultaneously measurable</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- LECTURE 4 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-l4" id="lec4">
+      <div class="card-header" onclick="toggle(this)">
+        <div class="card-icon">🔗</div>
+        <div class="card-meta">
+          <div class="card-title">Lecture 4 — Tensor Products &amp; Multi-Qubit States</div>
+          <div class="card-subtitle">Sections 1.3.2, 1.3.4–1.3.6, 2.1.7 · CNOT, Bell states, Kronecker product</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body">
+
+        <h3>Tensor Products</h3>
+        <ul>
+          <li>$V \otimes W$ has $\dim = n \cdot m$ (where $\dim V = n$, $\dim W = m$)</li>
+          <li>2-qubit space: $|vw\rangle = (\alpha_1|0\rangle+\beta_1|1\rangle)\otimes(\alpha_2|0\rangle+\beta_2|1\rangle)$</li>
+          <li>Computational basis (order matters!): $\{|00\rangle, |01\rangle, |10\rangle, |11\rangle\}$</li>
+          <li>$(A\otimes B)|v\rangle\otimes|w\rangle = (A|v\rangle)\otimes(B|w\rangle)$</li>
+          <li>Matrix rep via <strong>Kronecker product:</strong> $A\otimes B = [a_{ij}B]$ (block matrix)</li>
+          <li>Inner product: $\langle ij|i'j'\rangle = \delta_{ii'}\cdot\delta_{jj'}$</li>
+        </ul>
+
+        <h3>CNOT Gate</h3>
+        <div class="math-block">$$U_{CN}|c\rangle|t\rangle = |c\rangle|t\oplus c\rangle$$
+$$U_{CN} = \begin{pmatrix}1&0&0&0\\0&1&0&0\\0&0&0&1\\0&0&1&0\end{pmatrix}$$</div>
+
+        <h3>Bell States (Entangled 2-qubit)</h3>
+        <div class="callout callout-pink">
+          <div class="callout-label">Bell State</div>
+          $|\beta_{00}\rangle = \frac{|00\rangle + |11\rangle}{\sqrt{2}}$ — created by $H\otimes I$ followed by CNOT.
+          <br>Cannot be written as a product of single-qubit states → <strong>entangled</strong>.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- LECTURE 5 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-l5" id="lec5">
+      <div class="card-header" onclick="toggle(this)">
+        <div class="card-icon">⚡</div>
+        <div class="card-meta">
+          <div class="card-title">Lecture 5 — Quantum Algorithms</div>
+          <div class="card-subtitle">Sections 1.3.7, 1.4.1–1.4.4 · Toffoli, teleportation, Deutsch–Jozsa</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body">
+
+        <h3>Toffoli Gate &amp; No-Cloning</h3>
+        <ul>
+          <li>Classical gates: NOT, AND, OR, XOR, NAND, NOR — only NOT is reversible</li>
+          <li>All quantum gates are reversible (unitaries)</li>
+          <li><strong>Toffoli gate:</strong> $\{a,b,c\} \to \{a,b,c\oplus ab\}$, $T^{-1}=T$</li>
+          <li>$T(a,b,1) = (a,b,\text{NAND}(a,b))$ → classically universal</li>
+        </ul>
+        <div class="callout callout-pink">
+          <div class="callout-label">No-Cloning Theorem</div>
+          Quantum T <strong>cannot copy</strong> an unknown quantum state. Cloning would require $|\psi\rangle\otimes|\psi\rangle$ but linearity forbids it for unknown $|\psi\rangle$.
+        </div>
+
+        <h3>Quantum Teleportation</h3>
+        <p><strong>Setup:</strong> Alice &amp; Bob share $|\beta_{00}\rangle$; Alice holds unknown $|\psi\rangle = \alpha|0\rangle+\beta|1\rangle$</p>
+        <ol class="steps">
+          <li><span class="step-num">1</span> Alice applies CNOT (her $|\psi\rangle$ as control)</li>
+          <li><span class="step-num">2</span> Alice applies $H$ to her first qubit</li>
+          <li><span class="step-num">3</span> Alice measures her 2 qubits → $M_1M_2 \in \{00,01,10,11\}$, each with prob $\tfrac{1}{4}$</li>
+          <li><span class="step-num">4</span> Alice calls Bob; Bob applies $Z^{M_1}X^{M_2}$ → recovers $|\psi\rangle$ ✓</li>
+        </ol>
+        <div class="callout callout-green">
+          <div class="callout-label">Important Notes</div>
+          • Does <strong>not</strong> violate special relativity (classical communication required)<br>
+          • Does <strong>not</strong> violate no-cloning (Alice no longer has $|\psi\rangle$)
+        </div>
+
+        <h3>Deutsch–Jozsa Algorithm</h3>
+        <div class="compare-grid">
+          <div class="compare-box classical">
+            <div class="compare-label">⚙ Classical</div>
+            $2^{n-1}+1$ evaluations needed
+          </div>
+          <div class="compare-box quantum">
+            <div class="compare-label">⚛ Quantum</div>
+            <strong>1 evaluation</strong> (exponential speedup)
+          </div>
+        </div>
+        <p><strong>Oracle:</strong> $U_f|xy\rangle = |x\rangle\otimes|y\oplus f(x)\rangle$</p>
+        <ol class="steps">
+          <li><span class="step-num">1</span> Start: $|0\rangle^{\otimes n}|1\rangle$</li>
+          <li><span class="step-num">2</span> Apply $H^{\otimes n}\otimes H$</li>
+          <li><span class="step-num">3</span> Apply $U_f$ — picks up phase $(-1)^{f(x)}$</li>
+          <li><span class="step-num">4</span> Apply $H^{\otimes n}$</li>
+          <li><span class="step-num">5</span> Measure: all zeros → <strong>constant</strong>; any nonzero → <strong>balanced</strong></li>
+        </ol>
+        <div class="math-block">$$H^{\otimes n}|x\rangle = \frac{\sum_z (-1)^{[x\cdot z]}|z\rangle}{\sqrt{2^n}}$$</div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- LECTURE 6 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-l6" id="lec6">
+      <div class="card-header" onclick="toggle(this)">
+        <div class="card-icon">⚛</div>
+        <div class="card-meta">
+          <div class="card-title">Lecture 6 — Postulates of Quantum Mechanics</div>
+          <div class="card-subtitle">Section 2.2 · State space, evolution, measurement, composite systems</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body">
+
+        <h3>Postulate I — State Space</h3>
+        <ul>
+          <li>Every isolated system has a <strong>Hilbert space</strong></li>
+          <li>System state = unit vector $|\psi\rangle$ with $\langle\psi|\psi\rangle = 1$</li>
+          <li>Qubit: $|\psi\rangle = \alpha|0\rangle+\beta|1\rangle$, $|\alpha|^2+|\beta|^2=1$</li>
+        </ul>
+
+        <h3>Postulate II — Unitary Evolution</h3>
+        <ul>
+          <li>$|\psi\rangle' = U|\psi\rangle$, with $UU^+ = I$</li>
+          <li>Schrödinger equation: $i\hbar\,\frac{d|\psi\rangle}{dt} = H|\psi\rangle$</li>
+          <li>$U(t,t_1) = e^{-iH(t-t_1)/\hbar}$, where $H^+ = H$ (Hamiltonian)</li>
+          <li>Any unitary: $U = e^{iK}$ with $K$ Hermitian</li>
+        </ul>
+
+        <h3>Postulate III — Measurements</h3>
+        <ul>
+          <li>Collection $\{M_m\}$ with completeness: $\sum_m M_m^+M_m = I$</li>
+          <li>Probability: $p(m) = \langle\psi|M_m^+M_m|\psi\rangle$</li>
+          <li>Post-measurement state: $|m\rangle = M_m|\psi\rangle/\sqrt{p(m)}$</li>
+          <li>Computational basis: $M_0=|0\rangle\langle0|$, $p(0)=|\alpha|^2$; $M_1=|1\rangle\langle1|$, $p(1)=|\beta|^2$</li>
+        </ul>
+
+        <h3>Distinguishability</h3>
+        <ul>
+          <li><strong>Orthogonal states CAN</strong> be distinguished (with certainty)</li>
+          <li><strong>Non-orthogonal states CANNOT</strong> be distinguished with certainty</li>
+        </ul>
+
+        <h3>Projective Measurements &amp; Observables</h3>
+        <ul>
+          <li>Projectors: $P_m^2=P_m$, $P_m^+=P_m$, $\sum_m P_m = I$</li>
+          <li>Observable: $M = \sum_m m\,P_m$</li>
+          <li>Expectation value: $\langle M\rangle = \langle\psi|M|\psi\rangle$</li>
+        </ul>
+
+        <h3>Heisenberg Uncertainty Principle</h3>
+        <div class="callout callout-orange">
+          <div class="callout-label">Theorem</div>
+          $$\Delta(C)\cdot\Delta(D) \geq \frac{1}{2}\left|\langle\psi|[C,D]|\psi\rangle\right|$$
+          Example: $C=X$, $D=Y$, $|\psi\rangle=|0\rangle$ → $\Delta(X)\cdot\Delta(Y) = 1 \geq 1$ ✓
+        </div>
+
+        <h3>POVM Measurements</h3>
+        <ul>
+          <li>Set $\{E_m\}$ with each $E_m \geq 0$ and $\sum_m E_m = I$</li>
+          <li>Used when we only care about probabilities, not post-measurement state</li>
+          <li>Can distinguish $|0\rangle$ vs $|{+}\rangle$ "sometimes, never wrong"</li>
+        </ul>
+
+        <h3>Postulate IV — Composite Systems</h3>
+        <ul>
+          <li>$\mathcal{H}_{AB} = \mathcal{H}_A \otimes \mathcal{H}_B$</li>
+          <li><strong>Entanglement:</strong> state not writable as $|a\rangle\otimes|b\rangle$ — e.g. Bell states</li>
+          <li>Entanglement powers quantum computing advantage</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- LECTURE 7 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-l7" id="lec7">
+      <div class="card-header" onclick="toggle(this)">
+        <div class="card-icon">🎭</div>
+        <div class="card-meta">
+          <div class="card-title">Lecture 7 — Density Operator</div>
+          <div class="card-subtitle">Section 2.4 · Mixed states, partial trace, Bloch ball</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body">
+
+        <h3>Definition</h3>
+        <div class="math-block">$$\rho \equiv \sum_i p_i|\psi_i\rangle\langle\psi_i|$$</div>
+
+        <h3>Properties</h3>
+        <ul>
+          <li><strong>Trace:</strong> $\text{tr}(\rho) = 1$</li>
+          <li><strong>Positivity:</strong> $\langle\phi|\rho|\phi\rangle \geq 0$ for all $|\phi\rangle$</li>
+          <li>Under unitary: $\rho \to U\rho U^+$</li>
+          <li>Measurement outcome $m$: $p(m) = \text{tr}(M_m^+M_m\,\rho)$</li>
+          <li>Post-measurement: $\rho_m = M_m\rho M_m^+ / \text{tr}(M_m^+M_m\rho)$</li>
+        </ul>
+
+        <h3>Pure vs Mixed States</h3>
+        <div class="compare-grid">
+          <div class="compare-box classical">
+            <div class="compare-label">Pure State</div>
+            $\rho = |\psi\rangle\langle\psi|$<br>$\text{tr}(\rho^2) = 1$<br>Surface of Bloch sphere ($|\vec{r}|=1$)
+          </div>
+          <div class="compare-box quantum">
+            <div class="compare-label">Mixed State</div>
+            $\text{tr}(\rho^2) < 1$<br><strong>Maximally mixed:</strong> $\rho = I/d$<br>Interior of Bloch ball ($|\vec{r}|<1$)
+          </div>
+        </div>
+
+        <h3>General Single-Qubit Density Matrix</h3>
+        <div class="math-block">$$\rho = \frac{I + \vec{r}\cdot\vec{\sigma}}{2}, \quad |\vec{r}| \leq 1 \text{ (Bloch ball)}$$</div>
+
+        <h3>Reduced Density Operator</h3>
+        <ul>
+          <li>Only system $A$ observable: $\rho^A = \text{tr}_B(\rho^{AB})$ (partial trace)</li>
+          <li>Product state $\rho^{AB} = \rho\otimes\sigma$: partial traces give $\rho^A = \rho$, $\rho^B = \sigma$</li>
+          <li>Bell state $|\beta_{00}\rangle$: tracing one qubit gives $\rho_1 = I/2$ (maximally mixed!)</li>
+        </ul>
+
+        <div class="callout callout-indigo">
+          <div class="callout-label">Teleportation Insight</div>
+          Before Alice calls, Bob's reduced density matrix is $\rho_\text{Bob} = I/2$ — he has <strong>zero information</strong> about $|\psi\rangle$. No faster-than-light signaling.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- LECTURE 8 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-l8" id="lec8">
+      <div class="card-header" onclick="toggle(this)">
+        <div class="card-icon">🔔</div>
+        <div class="card-meta">
+          <div class="card-title">Lecture 8 — EPR &amp; Bell Inequality</div>
+          <div class="card-subtitle">Section 2.6 · Local realism, quantum violation $2\sqrt{2} > 2$</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body">
+
+        <h3>Setup</h3>
+        <ul>
+          <li>Charlie prepares 2 particles; Alice measures $Q$ or $R$ (outcomes $\pm1$); Bob measures $S$ or $T$ (outcomes $\pm1$)</li>
+          <li>Measurements are <strong>causally disconnected</strong></li>
+        </ul>
+
+        <h3>Bell Inequality (Classical / Local Realism)</h3>
+        <div class="math-block">$$QS + RS + RT - QT = (Q+R)S + (R-Q)T = \pm 2$$
+\Rightarrow\quad E(QS) + E(RS) + E(RT) - E(QT) \leq 2</div>
+
+        <h3>Quantum Mechanics Violation</h3>
+        <p>Charlie prepares $|\psi\rangle = (|01\rangle - |10\rangle)/\sqrt{2}$</p>
+        <p>Alice: $Q=Z_1$, $R=X_1$; Bob: $S=\frac{-Z_2-X_2}{\sqrt2}$, $T=\frac{Z_2-X_2}{\sqrt2}$</p>
+        <div class="math-block">$$E(QS) = E(RS) = E(RT) = \tfrac{1}{\sqrt{2}}, \quad E(QT) = -\tfrac{1}{\sqrt{2}}$$
+$$\Rightarrow\quad E(QS)+E(RS)+E(RT)-E(QT) = \frac{4}{\sqrt{2}} = 2\sqrt{2} \approx 2.83 > 2$$</div>
+
+        <div class="callout callout-pink">
+          <div class="callout-label">Conclusion</div>
+          Bell inequality is <strong>violated</strong> by QM. Experiments confirm QM. Therefore:<br><br>
+          → <strong>Local realism is wrong</strong> — properties do not pre-exist independently of measurement.<br>
+          → No one has modified QM postulates and still reproduced experimental physics.<br>
+          → For fun: read about <strong>ER=EPR</strong> (wormholes ↔ entanglement).
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- LECTURE 9 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-l9" id="lec9">
+      <div class="card-header" onclick="toggle(this)">
+        <div class="card-icon">🖥</div>
+        <div class="card-meta">
+          <div class="card-title">Lecture 9 — Elements of Quantum Circuits</div>
+          <div class="card-subtitle">Sections 4.2–4.4 · Bloch sphere rotations, C_n(U), measurement principles</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body">
+
+        <h3>Universal Gate Set</h3>
+        <div class="callout callout-cyan">
+          <div class="callout-label">Roadmap</div>
+          1. Any $n$-qubit unitary → product of <strong>two-level unitaries</strong><br>
+          2. Any two-level unitary → <strong>single-qubit gates + CNOT</strong><br>
+          3. Any single-qubit gate → approximated by <strong>H and T</strong><br><br>
+          ✦ Universal set: $\{H,\, T,\, \text{CNOT}\}$
+        </div>
+
+        <h3>Single-Qubit Bloch Sphere</h3>
+        <ul>
+          <li>$|\psi\rangle = a|0\rangle+b|1\rangle \leftrightarrow$ unit vector $\vec{n}$ on Bloch sphere</li>
+          <li>Opposite points on Bloch sphere → orthogonal states</li>
+          <li>Unitary 2×2: 4 free real parameters (after constraints from $UU^+=I$)</li>
+        </ul>
+
+        <h3>Rotation Operators</h3>
+        <div class="math-block">$$R_x(\theta) = e^{-i\theta X/2} = \cos\tfrac{\theta}{2}I - i\sin\tfrac{\theta}{2}X$$
+$$R_y(\theta) = e^{-i\theta Y/2} = \cos\tfrac{\theta}{2}I - i\sin\tfrac{\theta}{2}Y$$
+$$R_z(\theta) = e^{-i\theta Z/2} = \text{diag}(e^{-i\theta/2},\, e^{i\theta/2})$$</div>
+        <ul>
+          <li>$H = (X+Z)/\sqrt{2}$, &nbsp; $S = T^2$, &nbsp; $Z = S^2$</li>
+          <li>$S \sim R_z(\pi/2)$, &nbsp; $T \sim R_z(\pi/4)$ (up to global phase)</li>
+        </ul>
+
+        <h3>Decomposition Theorems</h3>
+        <ul>
+          <li><strong>Theorem I:</strong> $U = e^{i\alpha}R_{\hat{n}}(\theta)$</li>
+          <li><strong>Theorem II (Z-Y):</strong> $U = e^{i\alpha}R_z(\beta)R_y(\gamma)R_z(\delta)$</li>
+          <li><strong>Theorem III:</strong> Any two non-parallel axes $\hat{m},\hat{n}$: $U = e^{i\alpha}R_{\hat{n}}(\beta)R_{\hat{m}}(\gamma)R_{\hat{n}}(\delta)$</li>
+        </ul>
+        <div class="callout callout-green">
+          <div class="callout-label">Key Consequence</div>
+          For any single-qubit gate $U$, there exist unitaries $A,B,C$ with $ABC = I$ and $U = e^{i\alpha}AXBXC$
+        </div>
+
+        <h3>Controlled Operations</h3>
+        <ul>
+          <li><strong>CNOT:</strong> $|c\rangle|t\rangle \to |c\rangle|t\oplus c\rangle$</li>
+          <li><strong>Controlled-U:</strong> $|c\rangle|t\rangle \to |c\rangle U^c|t\rangle$</li>
+          <li>Flipping control/target: $H^{\otimes2}\cdot U_{CN}\cdot H^{\otimes2}$ implements reversed CNOT</li>
+        </ul>
+
+        <h3>Measurement Principles</h3>
+        <ul>
+          <li><strong>Deferred measurement:</strong> intermediate measurements can always be moved to end</li>
+          <li><strong>Implicit measurement:</strong> unterminated quantum wires are assumed measured</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- LECTURE 10 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-l10" id="lec10">
+      <div class="card-header" onclick="toggle(this)">
+        <div class="card-icon">🛠</div>
+        <div class="card-meta">
+          <div class="card-title">Lecture 10 — Universal Quantum Gates</div>
+          <div class="card-subtitle">Sections 4.5.1–4.5.4 · Two-level unitaries, Gray code, H+T approximation</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body">
+
+        <h3>Decomposition into Two-Level Unitaries</h3>
+        <ul>
+          <li>Any $2^n\times2^n$ unitary $U$ decomposes as product of $\leq 2^{n-1}(2^n-1)$ two-level unitaries</li>
+          <li>For $d\times d$ unitary: need $d(d-1)/2$ two-level gates</li>
+          <li>Construction: multiply $U$ by matrices $U_1,\ldots,U_{d-1}$ to zero out subdiagonal, reducing to block form</li>
+        </ul>
+
+        <h3>Single-Qubit + CNOT = Universal</h3>
+        <ul>
+          <li>Decompose any two-level unitary using a <strong>Gray code</strong> connecting binary strings $s$ and $t$</li>
+          <li>Each Gray code step (flip 1 bit) = one controlled-CNOT operation</li>
+          <li>Apply controlled-$\tilde{U}$ at the middle step; undo Gray code steps in reverse</li>
+        </ul>
+
+        <h3>Approximating Single-Qubit Gates with $\{H, T\}$</h3>
+        <div class="math-block">$$T = e^{i\pi/8}R_z(\pi/4), \quad HTH = e^{i\pi/8}R_x(\pi/4)$$
+$$e^{-i\pi/4}\cdot T \cdot HTH = R_{\hat{n}}(\theta), \quad \frac{\theta}{2\pi}\text{ is irrational}$$</div>
+        <div class="callout callout-indigo">
+          <div class="callout-label">Pigeonhole Argument</div>
+          For $N = \lceil 2\pi/\delta\rceil + 1$ angles $\theta_k = k\theta \pmod{2\pi}$, two must fall within $\delta$ of each other
+          → can approximate rotation by arbitrarily small angle → approximate any rotation.
+        </div>
+        <p style="color:var(--text2);font-size:0.88rem">Error metric: $E(U,V) = \max_{|\psi\rangle}\|(U-V)|\psi\rangle\|$</p>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- LECTURE 11 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-l11" id="lec11">
+      <div class="card-header" onclick="toggle(this)">
+        <div class="card-icon">〰</div>
+        <div class="card-meta">
+          <div class="card-title">Lecture 11 — Quantum Fourier Transform &amp; Phase Estimation</div>
+          <div class="card-subtitle">Sections 5.1, 5.2 · qFT circuit, phase estimation, Shor prerequisites</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body">
+
+        <h3>Context: Shor's Algorithm</h3>
+        <div class="compare-grid">
+          <div class="compare-box classical">
+            <div class="compare-label">Classical Factoring</div>
+            $\sim\exp\!\left(n^{1/3}\ln^{2/3}n\right)$ operations (Number Field Sieve)
+          </div>
+          <div class="compare-box quantum">
+            <div class="compare-label">Shor's Quantum</div>
+            $\sim n^2\ln n\ln\ln n$ operations (polynomial!)
+          </div>
+        </div>
+
+        <h3>Classical DFT</h3>
+        <div class="math-block">$$y_k = \frac{1}{\sqrt{N}}\sum_{j=0}^{N-1} x_j\, e^{2\pi ijk/N}$$</div>
+
+        <h3>Quantum Fourier Transform</h3>
+        <div class="math-block">$$|j\rangle \xrightarrow{\text{qFT}} \frac{1}{\sqrt{N}}\sum_{k=0}^{N-1} e^{2\pi ijk/N}|k\rangle$$</div>
+
+        <h3>Product Representation (Key Theorem)</h3>
+        <div class="callout callout-cyan">
+          <div class="callout-label">Theorem</div>
+          For $N = 2^n$, $|j\rangle = |j_1 j_2\cdots j_n\rangle$:
+          $$\text{qFT}|j\rangle = \frac{\left(|0\rangle+e^{2\pi i\cdot 0.j_n}|1\rangle\right)\left(|0\rangle+e^{2\pi i\cdot 0.j_{n-1}j_n}|1\rangle\right)\cdots\left(|0\rangle+e^{2\pi i\cdot 0.j_1\cdots j_n}|1\rangle\right)}{2^{n/2}}$$
+          where $0.j_\ell\cdots j_m \equiv j_\ell/2^1 + j_{\ell+1}/2^2 + \cdots + j_m/2^{m-\ell+1}$
+        </div>
+
+        <h3>qFT Circuit</h3>
+        <ul>
+          <li>Gates: $R_k = \text{diag}(1,\, e^{2\pi i/2^k})$ where $R_1=Z$, $R_2=S$, $R_3=T$</li>
+          <li>For each qubit $|j_\ell\rangle$: apply $H$, then controlled-$R_k$ gates</li>
+          <li>Final swap to reverse qubit order → circuit depth $O(n^2)$</li>
+        </ul>
+
+        <h3>Phase Estimation Algorithm</h3>
+        <p><strong>Task:</strong> Given $U|u\rangle = e^{2\pi i\varphi}|u\rangle$, estimate $\varphi$ to precision $2^{-t}$</p>
+        <ol class="steps">
+          <li><span class="step-num">1</span> Initialize $|0\rangle^{\otimes t}\otimes|u\rangle$; apply $H$ to each of the $t$ control qubits</li>
+          <li><span class="step-num">2</span> Apply controlled-$U^{2^j}$ for $j=0,1,\ldots,t-1$</li>
+          <li><span class="step-num">3</span> Result in first register: $U_\text{qFT}|\varphi_1\cdots\varphi_t\rangle\otimes|u\rangle$</li>
+          <li><span class="step-num">4</span> Apply inverse qFT to first register</li>
+          <li><span class="step-num">5</span> Measure first register → obtain $\tilde\varphi$ within $2^{-t}$ of $\varphi$ ✓</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- LECTURE 12 -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-l12" id="lec12">
+      <div class="card-header" onclick="toggle(this)">
+        <div class="card-icon">🔎</div>
+        <div class="card-meta">
+          <div class="card-title">Lecture 12 — Quantum Search Algorithm</div>
+          <div class="card-subtitle">Section 6.1 · Grover's algorithm, $O(\sqrt{N})$ search</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body">
+
+        <h3>Overview</h3>
+        <div class="compare-grid">
+          <div class="compare-box classical">
+            <div class="compare-label">Classical Search</div>
+            $O(N)$ evaluations (unstructured)
+          </div>
+          <div class="compare-box quantum">
+            <div class="compare-label">Grover's Search</div>
+            $O(\sqrt{N/M})$ evaluations<br>(quadratic speedup)
+          </div>
+        </div>
+
+        <h3>Oracle</h3>
+        <ul>
+          <li>$f(x) = 1$ if $x$ is a solution, $0$ otherwise</li>
+          <li>With $|q\rangle = |-\rangle$: <strong>phase kickback</strong> $O|x\rangle = (-1)^{f(x)}|x\rangle$</li>
+        </ul>
+
+        <h3>Algorithm</h3>
+        <ol class="steps">
+          <li><span class="step-num">1</span> Prepare $|\psi\rangle = H^{\otimes n}|0\rangle^{\otimes n} = \frac{1}{\sqrt{N}}\sum_x|x\rangle$</li>
+          <li><span class="step-num">2</span> Apply Grover operator $G$ exactly $R = \text{CI}\!\left[\frac{\pi}{4}\sqrt{\frac{N}{M}}\right]$ times</li>
+          <li><span class="step-num">3</span> Measure → obtain solution $x^*$ with error $\sim M/N \ll 1$</li>
+        </ol>
+
+        <h3>Grover Operator G</h3>
+        <div class="math-block">$$G = \left(2|\psi\rangle\langle\psi| - I_n\right)\cdot O$$</div>
+        <ul>
+          <li>$O$ reflects about $|\alpha\rangle$ (non-solutions)</li>
+          <li>$(2|\psi\rangle\langle\psi|-I_n)$ reflects about $|\psi\rangle$</li>
+          <li>Net effect: rotation by angle $\theta$ toward solutions $|\beta\rangle$</li>
+        </ul>
+
+        <h3>Geometric Picture</h3>
+        <div class="math-block">$$|\psi\rangle = \cos\tfrac{\theta}{2}|\alpha\rangle + \sin\tfrac{\theta}{2}|\beta\rangle, \quad \sin\tfrac{\theta}{2} = \sqrt{\frac{M}{N}}$$
+$$G^k|\psi\rangle = \cos\!\left(\tfrac{2k+1}{2}\theta\right)|\alpha\rangle + \sin\!\left(\tfrac{2k+1}{2}\theta\right)|\beta\rangle$$</div>
+        <div class="callout callout-green">
+          <div class="callout-label">Result</div>
+          After $R \approx \frac{\pi}{4}\sqrt{N/M}$ iterations, the state is close to $|\beta\rangle$ (equal superposition of solutions).
+          Probability of error $\leq M/N \ll 1$
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SPEEDUP TABLE -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-ref" id="speedup">
+      <div class="card-header open" onclick="toggle(this)">
+        <div class="card-icon">📊</div>
+        <div class="card-meta">
+          <div class="card-title">Quantum Speedup Summary</div>
+          <div class="card-subtitle">Classical vs Quantum complexity comparison</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body open">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Problem</th><th>Classical</th><th>Quantum</th><th>Speedup</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Unstructured search ($N$ items)</td><td>$O(N)$</td><td>$O(\sqrt{N})$</td><td>Quadratic</td></tr>
+              <tr><td>Factoring $n$-bit integer</td><td>$\exp(n^{1/3}\ln^{2/3}n)$</td><td>$O(n^2\ln n\ln\ln n)$</td><td>Exponential</td></tr>
+              <tr><td>Deutsch–Jozsa (constant vs balanced)</td><td>$2^{n-1}+1$</td><td>$1$</td><td>Exponential</td></tr>
+              <tr><td>Fourier transform ($N$-point)</td><td>$O(N\log N)$</td><td>$O(n^2)$ where $N=2^n$</td><td>Exponential</td></tr>
+              <tr><td>Phase estimation (to $2^{-t}$ precision)</td><td>—</td><td>$t$ qubits + $t$ qFT</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- NOTATION REFERENCE -->
+    <!-- ─────────────────────────────────────── -->
+    <div class="lecture-card lc-ref" id="notation">
+      <div class="card-header open" onclick="toggle(this)">
+        <div class="card-icon">🔤</div>
+        <div class="card-meta">
+          <div class="card-title">Key Notation Reference</div>
+          <div class="card-subtitle">Dirac notation, operators, symbols</div>
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      <div class="card-body open">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td>$|\psi\rangle$</td><td>Ket (state vector)</td></tr>
+              <tr><td>$\langle\psi|$</td><td>Bra (dual vector)</td></tr>
+              <tr><td>$\langle\phi|\psi\rangle$</td><td>Inner product</td></tr>
+              <tr><td>$|\phi\rangle\langle\psi|$</td><td>Outer product (operator)</td></tr>
+              <tr><td>$A^+$</td><td>Adjoint (conjugate transpose $(A^T)^*$)</td></tr>
+              <tr><td>$\otimes$</td><td>Tensor product</td></tr>
+              <tr><td>$|0\rangle,|1\rangle$</td><td>Computational basis states</td></tr>
+              <tr><td>$|{+}\rangle,|{-}\rangle$</td><td>Hadamard basis: $(|0\rangle\pm|1\rangle)/\sqrt{2}$</td></tr>
+              <tr><td>$|\beta_{00}\rangle$</td><td>Bell state $(|00\rangle+|11\rangle)/\sqrt{2}$</td></tr>
+              <tr><td>$\rho$</td><td>Density matrix</td></tr>
+              <tr><td>$\text{tr}_B(\rho)$</td><td>Partial trace over subsystem $B$</td></tr>
+              <tr><td>CI$(x)$</td><td>Closest integer to $x$</td></tr>
+              <tr><td>$[x\cdot z]$</td><td>Bitwise inner product mod 2</td></tr>
+              <tr><td>$0.j_1 j_2\cdots j_m$</td><td>Binary fraction $j_1/2^1 + j_2/2^2 + \cdots$</td></tr>
+              <tr><td>$\hbar$</td><td>Planck's constant ($= 1$ in QC units)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Back to top -->
+<button id="back-top" title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+/* ══════════════════════════════════════════════
+   PARTICLE CANVAS
+══════════════════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [], lines = [];
+
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const N_PARTICLES = 80;
+  for(let i=0; i<N_PARTICLES; i++){
+    particles.push({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      vx: (Math.random()-0.5)*0.35,
+      vy: (Math.random()-0.5)*0.35,
+      r: Math.random()*1.5+0.5,
+      hue: Math.random()*60+180, // cyan-indigo range
+      alpha: Math.random()*0.5+0.3
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Draw lines between nearby particles
+    for(let i=0; i<particles.length; i++){
+      for(let j=i+1; j<particles.length; j++){
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist < 120){
+          const alpha = (1 - dist/120)*0.15;
+          ctx.beginPath();
+          ctx.strokeStyle = `hsla(${particles[i].hue},80%,60%,${alpha})`;
+          ctx.lineWidth = 0.6;
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    // Draw particles
+    for(const p of particles){
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `hsla(${p.hue},80%,70%,${p.alpha})`;
+      ctx.fill();
+      // Move
+      p.x += p.vx;
+      p.y += p.vy;
+      if(p.x<-10) p.x=W+10;
+      if(p.x>W+10) p.x=-10;
+      if(p.y<-10) p.y=H+10;
+      if(p.y>H+10) p.y=-10;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ══════════════════════════════════════════════
+   CARD TOGGLE
+══════════════════════════════════════════════ */
+function toggle(header){
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+function expandAll(){
+  document.querySelectorAll('.card-header').forEach(h=>{
+    h.classList.add('open');
+    h.nextElementSibling.classList.add('open');
+  });
+}
+function collapseAll(){
+  document.querySelectorAll('.card-header').forEach(h=>{
+    h.classList.remove('open');
+    h.nextElementSibling.classList.remove('open');
+  });
+}
+
+/* ══════════════════════════════════════════════
+   SCROLL — progress bar + back-to-top + sidebar active
+══════════════════════════════════════════════ */
+const progressBar = document.getElementById('progress-bar');
+const backTop = document.getElementById('back-top');
+const sections = document.querySelectorAll('.lecture-card');
+const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+window.addEventListener('scroll', ()=>{
+  const scrolled = window.scrollY;
+  const total = document.body.scrollHeight - window.innerHeight;
+  progressBar.style.width = (scrolled/total*100)+'%';
+
+  backTop.classList.toggle('visible', scrolled > 300);
+
+  // Active sidebar link
+  let currentId = '';
+  sections.forEach(sec=>{
+    const top = sec.offsetTop - 100;
+    if(scrolled >= top) currentId = sec.id;
+  });
+  sidebarLinks.forEach(link=>{
+    const href = link.getAttribute('href')?.replace('#','');
+    link.classList.toggle('active', href === currentId);
+  });
+});
+
+/* ══════════════════════════════════════════════
+   MOBILE SIDEBAR
+══════════════════════════════════════════════ */
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+const menuBtn = document.getElementById('menu-btn');
+
+menuBtn.addEventListener('click', ()=>{
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+});
+overlay.addEventListener('click', ()=>{
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
+});
+sidebar.querySelectorAll('a').forEach(a=>{
+  a.addEventListener('click', ()=>{
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+});
+
+/* ══════════════════════════════════════════════
+   SEARCH
+══════════════════════════════════════════════ */
+const searchInput = document.getElementById('search-input');
+
+searchInput.addEventListener('input', function(){
+  const query = this.value.trim().toLowerCase();
+
+  // Remove existing highlights
+  document.querySelectorAll('.highlight-match').forEach(el=>{
+    el.outerHTML = el.innerHTML;
+  });
+
+  if(!query){ return; }
+
+  const cards = document.querySelectorAll('.lecture-card');
+  cards.forEach(card=>{
+    const body = card.querySelector('.card-body');
+    const header = card.querySelector('.card-header');
+    const text = body.textContent.toLowerCase();
+
+    if(text.includes(query)){
+      // Expand this card
+      header.classList.add('open');
+      body.classList.add('open');
+      card.style.outline = '1px solid rgba(56,189,248,0.4)';
+
+      // Highlight in text nodes
+      highlightText(body, query);
+    } else {
+      card.style.outline = '';
+    }
+  });
+});
+
+function highlightText(node, query){
+  if(node.nodeType === 3){ // text node
+    const text = node.textContent;
+    const idx = text.toLowerCase().indexOf(query);
+    if(idx !== -1){
+      const span = document.createElement('span');
+      span.innerHTML =
+        escapeHTML(text.slice(0,idx)) +
+        '<mark class="highlight-match">' + escapeHTML(text.slice(idx, idx+query.length)) + '</mark>' +
+        escapeHTML(text.slice(idx+query.length));
+      node.parentNode.replaceChild(span, node);
+    }
+  } else if(node.nodeType === 1 && !['SCRIPT','STYLE','MARK'].includes(node.tagName)){
+    Array.from(node.childNodes).forEach(child => highlightText(child, query));
+  }
+}
+
+function escapeHTML(str){
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Clear search highlights when cleared
+searchInput.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    this.value = '';
+    this.dispatchEvent(new Event('input'));
+    document.querySelectorAll('.lecture-card').forEach(c=>c.style.outline='');
+  }
+});
+
+/* ══════════════════════════════════════════════
+   STAGGERED ANIMATIONS
+══════════════════════════════════════════════ */
+document.querySelectorAll('.lecture-card').forEach((card,i)=>{
+  card.style.animationDelay = `${i*0.05}s`;
+});
+</script>
+</body>
+</html>
