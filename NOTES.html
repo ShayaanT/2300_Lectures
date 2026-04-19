@@ -829,47 +829,57 @@ code {
       </div>
       <div class="card-body open">
 
-        <h3>Definitions</h3>
+        <h3>What is a Linear Operator?</h3>
+        <p>A <strong>linear operator</strong> $A: V \to W$ is a map between vector spaces that respects addition and scalar multiplication. Concretely, if you have a superposition of states and apply $A$, you get the same result as applying $A$ to each component and then superposing:</p>
+        <div class="math-block">$$A\!\left(\sum_i a_i|v_i\rangle\right) = \sum_i a_i A|v_i\rangle$$</div>
+        <p>This linearity is fundamental — it means quantum gates distribute over superpositions, which is what gives quantum computing its power. Special cases:</p>
         <ul>
-          <li>A <strong>linear operator</strong> $A: V \to W$ satisfies $A\!\left(\sum_i a_i|v_i\rangle\right) = \sum_i a_i A|v_i\rangle$</li>
-          <li><strong>Identity operator</strong> $I_V|v\rangle = |v\rangle$ for all $|v\rangle \in V$</li>
-          <li><strong>Zero operator</strong> $0|v\rangle = 0$ for all $|v\rangle \in V$</li>
-          <li><strong>Composition:</strong> if $A: V\to W$ and $B: W\to X$, then $BA: V\to X$</li>
+          <li><strong>Identity operator</strong> $I_V|v\rangle = |v\rangle$ — does nothing, acts as the "do nothing" gate</li>
+          <li><strong>Zero operator</strong> $0|v\rangle = \vec{0}$ — maps everything to the zero vector</li>
+          <li><strong>Composition:</strong> if $A: V\to W$ and $B: W\to X$, the composition $BA$ maps $V\to X$ directly. In circuits, this means chaining gates.</li>
         </ul>
 
         <h3>Matrix Representation</h3>
-        <ul>
-          <li>$A|v\rangle_i = \sum_j A_{ji}|w\rangle_j$ → standard matrix multiplication $\vec{b} = A\vec{a}$</li>
-          <li>Composite $C = BA \Rightarrow C_{ki} = \sum_j B_{kj}A_{ji}$</li>
-        </ul>
+        <p>Every linear operator on a finite-dimensional space has a matrix representation. Fix an input basis $\{|v\rangle_i\}$ and output basis $\{|w\rangle_j\}$. The matrix element $A_{ji}$ tells you the amplitude of $|w\rangle_j$ produced when the operator acts on $|v\rangle_i$:</p>
+        <div class="math-block">$$A|v\rangle_i = \sum_j A_{ji}|w\rangle_j \quad \Longrightarrow \quad \vec{b} = A\vec{a}$$</div>
+        <p>Composing operators corresponds to matrix multiplication: $C = BA \Rightarrow C_{ki} = \sum_j B_{kj}A_{ji}$. Note that operator composition is generally <strong>not commutative</strong> — the order matters.</p>
 
-        <h3>Outer Product Representation</h3>
-        <ul>
-          <li>Operator $A = |w\rangle\langle v|$ acts as $A|\psi\rangle = \langle v|\psi\rangle\,|w\rangle$</li>
-          <li><strong>Completeness relation:</strong> $I = \sum_i |i\rangle\langle i|$ for any orthonormal basis $\{|i\rangle\}$</li>
-        </ul>
+        <h3>The Outer Product (Dirac) Representation</h3>
+        <p>In quantum mechanics we often write operators as sums of outer products $|w\rangle\langle v|$. When this operator acts on a ket $|\psi\rangle$ it first takes the inner product with $\langle v|$, then scales $|w\rangle$:</p>
+        <div class="math-block">$$\left(|w\rangle\langle v|\right)|\psi\rangle = \langle v|\psi\rangle\,|w\rangle$$</div>
+        <p>The scalar $\langle v|\psi\rangle$ is just a complex number, so this projects $|\psi\rangle$ onto $|v\rangle$ and outputs a multiple of $|w\rangle$. The crucial <strong>completeness relation</strong> says that for any orthonormal basis $\{|i\rangle\}$:</p>
+        <div class="math-block">$$I = \sum_i |i\rangle\langle i|$$</div>
+        <p>This is extremely useful — you can insert it anywhere to expand a state or operator in a basis.</p>
 
-        <h3>Pauli Matrices — MEMORIZE</h3>
+        <h3>Pauli Matrices — Core Single-Qubit Gates</h3>
+        <p>A qubit lives in a 2D complex Hilbert space. The Pauli matrices $\{I, X, Y, Z\}$ form a basis for all $2\times2$ Hermitian operators. You <strong>must</strong> know these:</p>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Gate</th><th>Matrix</th><th>Action</th></tr></thead>
+            <thead><tr><th>Gate</th><th>Matrix</th><th>Action on basis states</th><th>Physical meaning</th></tr></thead>
             <tbody>
-              <tr><td>$I$</td><td>$\begin{pmatrix}1&0\\0&1\end{pmatrix}$</td><td>Identity</td></tr>
-              <tr><td>$X$ (NOT)</td><td>$\begin{pmatrix}0&1\\1&0\end{pmatrix}$</td><td>$X|0\rangle=|1\rangle,\;X|1\rangle=|0\rangle$</td></tr>
-              <tr><td>$Y$</td><td>$\begin{pmatrix}0&-i\\i&0\end{pmatrix}$</td><td>Rotation about $y$-axis</td></tr>
-              <tr><td>$Z$ (phase flip)</td><td>$\begin{pmatrix}1&0\\0&-1\end{pmatrix}$</td><td>$Z=|0\rangle\langle0|-|1\rangle\langle1|$</td></tr>
-              <tr><td>$H$ (Hadamard)</td><td>$\frac{1}{\sqrt{2}}\begin{pmatrix}1&1\\1&-1\end{pmatrix}$</td><td>$H|0\rangle=|{+}\rangle,\;H|1\rangle=|{-}\rangle$</td></tr>
-              <tr><td>$P(\gamma)$ (Phase)</td><td>$\begin{pmatrix}e^{-i\gamma/2}&0\\0&e^{i\gamma/2}\end{pmatrix}$</td><td>Rotation about $z$-axis by $\gamma$</td></tr>
+              <tr><td>$I$</td><td>$\begin{pmatrix}1&0\\0&1\end{pmatrix}$</td><td>$I|0\rangle=|0\rangle,\;I|1\rangle=|1\rangle$</td><td>Do nothing</td></tr>
+              <tr><td>$X$ (bit flip / NOT)</td><td>$\begin{pmatrix}0&1\\1&0\end{pmatrix}$</td><td>$X|0\rangle=|1\rangle,\;X|1\rangle=|0\rangle$</td><td>180° rotation about $x$-axis of Bloch sphere</td></tr>
+              <tr><td>$Y$</td><td>$\begin{pmatrix}0&-i\\i&0\end{pmatrix}$</td><td>$Y|0\rangle=i|1\rangle,\;Y|1\rangle=-i|0\rangle$</td><td>180° rotation about $y$-axis</td></tr>
+              <tr><td>$Z$ (phase flip)</td><td>$\begin{pmatrix}1&0\\0&-1\end{pmatrix}$</td><td>$Z|0\rangle=|0\rangle,\;Z|1\rangle=-|1\rangle$</td><td>180° rotation about $z$-axis; $Z=|0\rangle\langle0|-|1\rangle\langle1|$</td></tr>
+              <tr><td>$H$ (Hadamard)</td><td>$\frac{1}{\sqrt{2}}\begin{pmatrix}1&1\\1&-1\end{pmatrix}$</td><td>$H|0\rangle=|{+}\rangle,\;H|1\rangle=|{-}\rangle$</td><td>Creates equal superposition; rotates $z\leftrightarrow x$ on Bloch sphere</td></tr>
+              <tr><td>$P(\gamma)$ (Phase gate)</td><td>$\begin{pmatrix}e^{-i\gamma/2}&0\\0&e^{i\gamma/2}\end{pmatrix}$</td><td>$P|0\rangle=e^{-i\gamma/2}|0\rangle$, $P|1\rangle=e^{i\gamma/2}|1\rangle$</td><td>Rotation about $z$-axis by angle $\gamma$</td></tr>
             </tbody>
           </table>
         </div>
+        <p>The Hadamard gate is especially important: it converts a definite state like $|0\rangle$ into an equal superposition $|{+}\rangle = (|0\rangle+|1\rangle)/\sqrt{2}$. This is the key step that puts a qubit "in both states at once" — the starting point of most quantum algorithms.</p>
 
-        <h3>Key Identities</h3>
-        <div class="math-block">$$X^2 = Y^2 = Z^2 = H^2 = I$$
-$$XY = iZ,\quad YX = -iZ \quad\Rightarrow\text{ gates are non-commutative}$$</div>
+        <h3>Key Identities to Memorize</h3>
+        <div class="math-block">$$X^2 = Y^2 = Z^2 = H^2 = I \quad \text{(all are self-inverse)}$$
+$$XY = iZ,\quad YX = -iZ \quad\Rightarrow\quad [X,Y] = 2iZ \quad\text{(non-commutative!)}$$</div>
+        <div class="callout callout-orange">
+          <div class="callout-label">Why non-commutativity matters</div>
+          In classical computing, $A \circ B = B \circ A$ for logic gates doesn't hold generally — but we rarely care. In quantum computing, the order of gates directly affects the output state due to non-commutativity. This is also tied to the Heisenberg uncertainty principle: quantities whose operators don't commute cannot both be measured precisely simultaneously.
+        </div>
 
         <h3>Cauchy–Schwartz Inequality</h3>
+        <p>For any two vectors in a Hilbert space, the magnitude of their overlap is bounded by the product of their norms:</p>
         <div class="math-block">$$|\langle v|w\rangle|^2 \leq \langle v|v\rangle\langle w|w\rangle$$</div>
+        <p>Equality holds iff $|v\rangle$ and $|w\rangle$ are proportional (parallel). For unit vectors, this becomes $|\langle v|w\rangle|^2 \leq 1$, which bounds the probability of confusing two states — if they are orthogonal ($\langle v|w\rangle = 0$) they are perfectly distinguishable; if parallel, they are identical.</p>
       </div>
     </div>
 
@@ -888,62 +898,91 @@ $$XY = iZ,\quad YX = -iZ \quad\Rightarrow\text{ gates are non-commutative}$$</di
       <div class="card-body">
 
         <h3>Eigenvalues &amp; Eigenvectors</h3>
-        <ul>
-          <li>$A|v\rangle = \lambda|v\rangle$ — eigenvalues from <strong>characteristic equation</strong> $\det(A - \lambda I) = 0$</li>
-          <li>$A$ is <strong>diagonalizable</strong> iff $A = \sum_i \lambda_i|i\rangle\langle i|$</li>
-        </ul>
+        <p>An <strong>eigenvector</strong> of operator $A$ is a special vector that $A$ only scales (doesn't rotate). The scaling factor is the <strong>eigenvalue</strong> $\lambda$:</p>
+        <div class="math-block">$$A|v\rangle = \lambda|v\rangle$$</div>
+        <p>To find all eigenvalues, solve the <strong>characteristic equation</strong> $\det(A - \lambda I) = 0$. The roots are the eigenvalues. For quantum gates, eigenvalues describe the possible measurement outcomes. An operator is <strong>diagonalizable</strong> if it can be written as:</p>
+        <div class="math-block">$$A = \sum_i \lambda_i|i\rangle\langle i|$$</div>
+        <p>in its own eigenbasis — meaning in that basis $A$ is just a diagonal matrix of eigenvalues. This is essential in QC because all valid quantum gates must be diagonalizable.</p>
 
         <div class="callout callout-green">
-          <div class="callout-label">Example — Pauli Y</div>
-          Eigenvalues $\{-1,+1\}$, eigenvectors $|v_1\rangle = \frac{1}{\sqrt2}\begin{pmatrix}i\\1\end{pmatrix}$ (spin $-y$), $|v_2\rangle = \frac{1}{\sqrt2}\begin{pmatrix}-i\\1\end{pmatrix}$ (spin $+y$)
+          <div class="callout-label">Worked Example — Pauli Y Eigenvalues</div>
+          Solve $\det(Y - \lambda I) = 0$: &nbsp; $(-\lambda)^2 - (-i)(i) = \lambda^2 - 1 = 0 \Rightarrow \lambda = \pm 1$<br><br>
+          For $\lambda=-1$: &emsp;$|v_1\rangle = \frac{1}{\sqrt2}\begin{pmatrix}i\\1\end{pmatrix}$ (spin along $-y$ axis)<br>
+          For $\lambda=+1$: &emsp;$|v_2\rangle = \frac{1}{\sqrt2}\begin{pmatrix}-i\\1\end{pmatrix}$ (spin along $+y$ axis)<br><br>
+          Check orthogonality: $\langle v_1|v_2\rangle = \frac{1}{2}((-i)(-i)+1\cdot1) = \frac{1}{2}(-1+1) = 0$ ✓
+        </div>
+        <div class="callout callout-indigo">
+          <div class="callout-label">Non-diagonalizable example</div>
+          $A = \begin{pmatrix}1&0\\1&1\end{pmatrix}$ has only one eigenvector ($\lambda=1$), so it <strong>cannot</strong> be diagonalized. The check: $AA^+ \neq A^+A$, so it's not normal. Non-normal operators don't correspond to valid gates or observables in QC.
         </div>
 
         <h3>Adjoint Operator</h3>
+        <p>The <strong>adjoint</strong> (or Hermitian conjugate) of $A$ is denoted $A^+$ and defined as the conjugate transpose:</p>
+        <div class="math-block">$$A^+ \equiv (A^T)^* \quad \text{(transpose, then complex conjugate each entry)}$$</div>
+        <p>Key properties — all follow directly from this definition:</p>
         <ul>
-          <li>$A^+ \equiv (A^T)^*$ (conjugate transpose)</li>
-          <li>$(A^+)^+ = A$, &nbsp; $(AB)^+ = B^+A^+$</li>
-          <li>$(a|i\rangle\langle i|)^+ = a^*|i\rangle\langle i|$</li>
+          <li>$(A^+)^+ = A$ — double adjoint recovers the original</li>
+          <li>$(AB)^+ = B^+A^+$ — order reverses (like matrix transposition)</li>
+          <li>$(a|i\rangle\langle i|)^+ = a^*|i\rangle\langle i|$ — eigenvalues become complex conjugates</li>
+          <li>For a bra: $\langle v| = (|v\rangle)^+ = |v\rangle^+$</li>
         </ul>
+        <p>Every Pauli gate is its own adjoint: $X^+=X$, $Y^+=Y$, $Z^+=Z$, $H^+=H$ — this is why they are all both Hermitian and unitary.</p>
 
         <h3>Hermitian Operators</h3>
+        <p>$A$ is <strong>Hermitian</strong> (self-adjoint) if $A^+ = A$. This has profound physical meaning:</p>
         <ul>
-          <li>$A$ is <strong>Hermitian</strong> if $A^+ = A$ → all eigenvalues are real</li>
-          <li><strong>Projector</strong> onto $W$: $P = \sum_{i=1}^k |i\rangle\langle i|$, satisfies $P^+ = P$</li>
-          <li><strong>Idempotent:</strong> $P^2 = P$ — "project once; repeated measurement gives same result"</li>
+          <li>All eigenvalues are <strong>real</strong> — required because measurement outcomes must be real numbers</li>
+          <li>Hermitian operators represent <strong>physical observables</strong> (energy, position, spin, etc.)</li>
+          <li>Eigenvectors are <strong>orthogonal</strong> and form a complete basis</li>
         </ul>
+        <p>A <strong>projector</strong> $P = \sum_{i=1}^k |i\rangle\langle i|$ is a special Hermitian operator that extracts the component of a vector in subspace $W$. The identity $P^2 = P$ (idempotency) means <em>"projecting twice is the same as projecting once"</em> — measuring the same thing twice gives the same answer.</p>
+        <div class="callout callout-cyan">
+          <div class="callout-label">Physical Intuition — Projectors &amp; Measurement</div>
+          When you measure a qubit in the $|0\rangle/|1\rangle$ basis, you are applying projectors $P_0 = |0\rangle\langle0|$ and $P_1 = |1\rangle\langle1|$. If you get outcome $0$, the state collapses to $|0\rangle$, and measuring again always gives $0$ again. This is $P_0^2 = P_0$ in action.
+        </div>
 
         <h3>Normal Operators &amp; Spectral Decomposition Theorem</h3>
-        <ul>
-          <li>$A$ is <strong>normal</strong> if $AA^+ = A^+A$</li>
-          <li><em>Theorem:</em> $A$ is normal $\Leftrightarrow$ $A$ is diagonalizable</li>
-          <li><strong>Unitary:</strong> $UU^+ = U^+U = I$ → normal, preserves inner products</li>
-        </ul>
+        <p>$A$ is <strong>normal</strong> if it commutes with its own adjoint: $AA^+ = A^+A$. The <em>Spectral Decomposition Theorem</em> states:</p>
+        <div class="callout callout-orange">
+          <div class="callout-label">Spectral Decomposition Theorem</div>
+          An operator is normal <strong>if and only if</strong> it is diagonalizable (in its eigenbasis, it's just a diagonal matrix of eigenvalues).
+        </div>
+        <p>All Pauli gates and Hadamard are normal (they are both Hermitian and unitary). A <strong>unitary operator</strong> satisfies $UU^+ = U^+U = I$, meaning its inverse equals its adjoint. Unitaries preserve inner products: if $|v\rangle \to U|v\rangle$ and $|w\rangle \to U|w\rangle$, then $\langle w|v\rangle$ is unchanged — lengths and angles on the Bloch sphere are preserved.</p>
 
         <h3>Operator Functions</h3>
-        <ul>
-          <li>For Hermitian $A = \sum_i \lambda_i|i\rangle\langle i|$: $f(A) \equiv \sum_i f(\lambda_i)|i\rangle\langle i|$</li>
-        </ul>
+        <p>If $A$ is Hermitian with spectral decomposition $A = \sum_i \lambda_i|i\rangle\langle i|$, then any function $f$ applied to $A$ is defined by applying $f$ to each eigenvalue:</p>
+        <div class="math-block">$$f(A) \equiv \sum_i f(\lambda_i)|i\rangle\langle i|$$</div>
+        <p>For example, $e^{\theta Z} = e^\theta|0\rangle\langle0| + e^{-\theta}|1\rangle\langle1| = \begin{pmatrix}e^\theta&0\\0&e^{-\theta}\end{pmatrix}$. The most important instance is the Pauli rotation formula. Since $S = \vec{v}\cdot\vec{\sigma}$ has eigenvalues $\pm1$ (because $S^2 = I$):</p>
         <div class="callout callout-orange">
-          <div class="callout-label">Key Result</div>
+          <div class="callout-label">Key Formula — Rotation via Pauli matrices</div>
           $$e^{i\theta\,\vec{v}\cdot\vec{\sigma}} = \cos\theta\,I + i\sin\theta\,(\vec{v}\cdot\vec{\sigma}), \quad |\vec{v}|=1$$
+          This is exactly how quantum gate rotations work on the Bloch sphere. All single-qubit gates are of this form.
         </div>
+        <p>The underlying Pauli algebra that makes this work:</p>
         <ul>
-          <li>Pauli algebra: $\sigma_i\sigma_j = \delta_{ij}I + i\sum_k \varepsilon_{ijk}\sigma_k$</li>
-          <li>$\{\sigma_i,\sigma_j\} = 2\delta_{ij}I$ &nbsp;(anti-commutator)</li>
+          <li>$\sigma_i\sigma_j = \delta_{ij}I + i\sum_k \varepsilon_{ijk}\sigma_k$ &nbsp;— product of two different Paulis gives the third (with $\pm i$)</li>
+          <li>$\{\sigma_i,\sigma_j\} = 2\delta_{ij}I$ &nbsp;— anti-commutator is simply $2I$ (diagonal part)</li>
         </ul>
 
         <h3>Trace</h3>
+        <p>The <strong>trace</strong> of a matrix is the sum of its diagonal entries: $\text{tr}(A) = \sum_i A_{ii}$. It is <em>basis-independent</em> and satisfies:</p>
         <ul>
-          <li>$\text{tr}(AB) = \text{tr}(BA)$, &nbsp; $\text{tr}(I)=2$, &nbsp; $\text{tr}(\sigma_i)=0$</li>
-          <li>Invariant under unitary similarity: $\text{tr}(UAU^+) = \text{tr}(A)$</li>
+          <li>$\text{tr}(AB) = \text{tr}(BA)$ — cyclic property (very useful for simplifying calculations)</li>
+          <li>$\text{tr}(UAU^+) = \text{tr}(A)$ — invariant under unitary similarity transforms</li>
+          <li>For single qubits: $\text{tr}(I)=2$, $\text{tr}(X)=\text{tr}(Y)=\text{tr}(Z)=\text{tr}(H)=0$</li>
         </ul>
+        <p>Traces appear constantly in quantum computing when computing probabilities, expectation values, and density matrix properties.</p>
 
         <h3>Commutator / Anti-commutator</h3>
+        <p>The <strong>commutator</strong> $[A,B] = AB - BA$ measures how much $A$ and $B$ fail to commute. The <strong>anti-commutator</strong> $\{A,B\} = AB + BA$ measures their symmetric part:</p>
         <ul>
-          <li>$[A,B] = AB - BA$; &nbsp; $\{A,B\} = AB + BA$</li>
-          <li>$[\sigma_i,\sigma_j] = 2i\sum_k\varepsilon_{ijk}\sigma_k$; &nbsp; $\{\sigma_i,\sigma_j\} = 2\delta_{ij}I$</li>
-          <li><strong>Theorem:</strong> $[A,B]=0 \Leftrightarrow A,B$ simultaneously diagonalizable → simultaneously measurable</li>
+          <li>$[\sigma_i,\sigma_j] = 2i\sum_k\varepsilon_{ijk}\sigma_k$ — nonzero commutator means $X,Y,Z$ don't commute</li>
+          <li>$\{\sigma_i,\sigma_j\} = 2\delta_{ij}I$ — anti-commutator is diagonal</li>
         </ul>
+        <div class="callout callout-pink">
+          <div class="callout-label">Key Theorem — Simultaneous Measurability</div>
+          $[A,B] = 0$ if and only if $A$ and $B$ can be simultaneously diagonalized in the same basis. Physically: if $[A,B]=0$, both observables can be measured at the same time with no uncertainty trade-off. If $[A,B]\neq0$ (like $X$ and $Z$), they obey an uncertainty principle and cannot both be known precisely — measuring one disturbs the other.
+        </div>
       </div>
     </div>
 
@@ -961,26 +1000,45 @@ $$XY = iZ,\quad YX = -iZ \quad\Rightarrow\text{ gates are non-commutative}$$</di
       </div>
       <div class="card-body">
 
-        <h3>Tensor Products</h3>
+        <h3>Why Tensor Products?</h3>
+        <p>A single qubit lives in a 2D complex vector space $\mathbb{C}^2$. To describe <em>two</em> qubits together, we need the <strong>tensor product</strong> $\mathbb{C}^2 \otimes \mathbb{C}^2 = \mathbb{C}^4$. More generally, $n$ qubits together require a $2^n$-dimensional space — this exponential growth is what makes quantum computers potentially powerful: $n$ qubits can be in a superposition of $2^n$ states simultaneously.</p>
         <ul>
-          <li>$V \otimes W$ has $\dim = n \cdot m$ (where $\dim V = n$, $\dim W = m$)</li>
-          <li>2-qubit space: $|vw\rangle = (\alpha_1|0\rangle+\beta_1|1\rangle)\otimes(\alpha_2|0\rangle+\beta_2|1\rangle)$</li>
-          <li>Computational basis (order matters!): $\{|00\rangle, |01\rangle, |10\rangle, |11\rangle\}$</li>
-          <li>$(A\otimes B)|v\rangle\otimes|w\rangle = (A|v\rangle)\otimes(B|w\rangle)$</li>
-          <li>Matrix rep via <strong>Kronecker product:</strong> $A\otimes B = [a_{ij}B]$ (block matrix)</li>
-          <li>Inner product: $\langle ij|i'j'\rangle = \delta_{ii'}\cdot\delta_{jj'}$</li>
+          <li>$\dim(V \otimes W) = \dim(V) \times \dim(W) = n \cdot m$</li>
+          <li>For $n$ qubits: dimension $= 2^n$ (grows exponentially with number of qubits)</li>
+          <li>A general 2-qubit state: $|\psi\rangle = \alpha_{00}|00\rangle + \alpha_{01}|01\rangle + \alpha_{10}|10\rangle + \alpha_{11}|11\rangle$ with $\sum|\alpha_{ij}|^2 = 1$</li>
         </ul>
 
-        <h3>CNOT Gate</h3>
+        <h3>Tensor Product Rules</h3>
+        <p>The tensor product $\otimes$ is bilinear but <strong>not commutative</strong> — $|01\rangle \neq |10\rangle$. The computational basis (canonical ordered basis) for 2 qubits is $\{|00\rangle, |01\rangle, |10\rangle, |11\rangle\}$ where the left digit is the first qubit and the right is the second.</p>
+        <ul>
+          <li>Operators on separate systems: $(A\otimes B)|v\rangle\otimes|w\rangle = (A|v\rangle)\otimes(B|w\rangle)$ — gate $A$ acts on the first qubit, $B$ on the second, independently</li>
+          <li>Inner products: $\langle ij|i'j'\rangle = \delta_{ii'}\cdot\delta_{jj'}$ — factorize into separate inner products</li>
+          <li><strong>Kronecker product</strong> gives the matrix representation: $A\otimes B = [a_{ij}B]$ (each entry $a_{ij}$ of $A$ is replaced by the full matrix $a_{ij}B$)</li>
+        </ul>
+
+        <div class="callout callout-indigo">
+          <div class="callout-label">Kronecker product example</div>
+          $H \otimes I = \frac{1}{\sqrt{2}}\begin{pmatrix}1\cdot I & 1\cdot I\\ 1\cdot I & -1\cdot I\end{pmatrix} = \frac{1}{\sqrt{2}}\begin{pmatrix}1&0&1&0\\0&1&0&1\\1&0&-1&0\\0&1&0&-1\end{pmatrix}$
+          — this applies $H$ to the first qubit and does nothing to the second.
+        </div>
+
+        <h3>CNOT Gate — The Key 2-Qubit Gate</h3>
+        <p>The <strong>Controlled-NOT (CNOT)</strong> gate flips the <em>target</em> qubit if and only if the <em>control</em> qubit is $|1\rangle$ (using XOR $\oplus$ for the conditional flip):</p>
         <div class="math-block">$$U_{CN}|c\rangle|t\rangle = |c\rangle|t\oplus c\rangle$$
 $$U_{CN} = \begin{pmatrix}1&0&0&0\\0&1&0&0\\0&0&0&1\\0&0&1&0\end{pmatrix}$$</div>
+        <p>Action on all basis states: $|00\rangle\to|00\rangle$, $|01\rangle\to|01\rangle$, $|10\rangle\to|11\rangle$, $|11\rangle\to|10\rangle$. The first two rows leave $|0x\rangle$ alone (control is $|0\rangle$), while the last two flip the target (control is $|1\rangle$).</p>
+        <p>CNOT is the fundamental 2-qubit gate. Together with single-qubit gates it is <strong>universal</strong> — any quantum operation can be built from {single-qubit gates, CNOT}.</p>
 
-        <h3>Bell States (Entangled 2-qubit)</h3>
+        <h3>Entanglement &amp; Bell States</h3>
+        <p>An <strong>entangled</strong> state is one that <em>cannot</em> be written as a tensor product $|a\rangle\otimes|b\rangle$ of two independent single-qubit states. The archetypal entangled states are the <strong>Bell states</strong>:</p>
         <div class="callout callout-pink">
-          <div class="callout-label">Bell State</div>
-          $|\beta_{00}\rangle = \frac{|00\rangle + |11\rangle}{\sqrt{2}}$ — created by $H\otimes I$ followed by CNOT.
-          <br>Cannot be written as a product of single-qubit states → <strong>entangled</strong>.
+          <div class="callout-label">All 4 Bell States</div>
+          $$|\beta_{00}\rangle = \frac{|00\rangle + |11\rangle}{\sqrt{2}}, \quad |\beta_{01}\rangle = \frac{|01\rangle + |10\rangle}{\sqrt{2}}$$
+          $$|\beta_{10}\rangle = \frac{|00\rangle - |11\rangle}{\sqrt{2}}, \quad |\beta_{11}\rangle = \frac{|01\rangle - |10\rangle}{\sqrt{2}}$$
+          These form an orthonormal basis for the 2-qubit space.
         </div>
+        <p><strong>How to create $|\beta_{00}\rangle$:</strong> start with $|00\rangle$, apply $H$ to the first qubit to get $\frac{1}{\sqrt2}(|0\rangle+|1\rangle)\otimes|0\rangle = \frac{1}{\sqrt2}(|00\rangle+|10\rangle)$, then apply CNOT to get $\frac{1}{\sqrt2}(|00\rangle+|11\rangle) = |\beta_{00}\rangle$.</p>
+        <p>Entanglement has strange consequences. If you measure the first qubit of $|\beta_{00}\rangle$ and get $|0\rangle$, the second qubit <em>instantly</em> collapses to $|0\rangle$ regardless of how far apart the qubits are. This is the phenomenon Einstein called "spooky action at a distance." It cannot transmit information faster than light (classical communication is still needed — see teleportation), but it enables quantum computations and protocols impossible classically.</p>
       </div>
     </div>
 
@@ -998,52 +1056,61 @@ $$U_{CN} = \begin{pmatrix}1&0&0&0\\0&1&0&0\\0&0&0&1\\0&0&1&0\end{pmatrix}$$</div
       </div>
       <div class="card-body">
 
-        <h3>Toffoli Gate &amp; No-Cloning</h3>
+        <h3>Reversibility in Quantum Computing</h3>
+        <p>Classical logic gates like AND and OR are <strong>irreversible</strong> — you cannot recover the inputs from the output (e.g. $1 \text{ AND } 0 = 0$ and $0 \text{ AND } 0 = 0$, so you can't tell the inputs apart). All quantum gates must be <strong>unitary</strong>, which makes them automatically reversible (you can always apply $U^+$ to undo $U$). This is a fundamental constraint: only the NOT gate is reversible classically, but the <strong>Toffoli gate</strong> lets us simulate any classical gate reversibly in quantum circuits.</p>
         <ul>
           <li>Classical gates: NOT, AND, OR, XOR, NAND, NOR — only NOT is reversible</li>
-          <li>All quantum gates are reversible (unitaries)</li>
-          <li><strong>Toffoli gate:</strong> $\{a,b,c\} \to \{a,b,c\oplus ab\}$, $T^{-1}=T$</li>
-          <li>$T(a,b,1) = (a,b,\text{NAND}(a,b))$ → classically universal</li>
+          <li>All quantum gates are unitary → all reversible by applying their adjoint</li>
+          <li><strong>Toffoli gate</strong> (CCNOT): $\{a,b,c\} \to \{a,b,\,c\oplus ab\}$ — flips $c$ iff both $a=1$ and $b=1$</li>
+          <li>$T^{-1} = T$ (self-inverse, like all Paulis)</li>
+          <li>$T(a,b,1) = (a,b,\lnot(ab)) = (a,b,\text{NAND}(a,b))$ — simulates NAND reversibly → <strong>classically universal</strong></li>
         </ul>
         <div class="callout callout-pink">
           <div class="callout-label">No-Cloning Theorem</div>
-          Quantum T <strong>cannot copy</strong> an unknown quantum state. Cloning would require $|\psi\rangle\otimes|\psi\rangle$ but linearity forbids it for unknown $|\psi\rangle$.
+          <p>It is <strong>impossible</strong> to create an exact copy of an unknown quantum state. The formal argument: suppose there existed a unitary $U$ such that $U|\psi\rangle|0\rangle = |\psi\rangle|\psi\rangle$ for all states $|\psi\rangle$.</p>
+          <p>Take two states $|\psi\rangle$ and $|\phi\rangle$. Then $U(|\psi\rangle+|\phi\rangle)|0\rangle$ must equal both $|\psi\rangle|\psi\rangle + |\phi\rangle|\phi\rangle$ (from linearity of $U$) and $(|\psi\rangle+|\phi\rangle)^{\otimes2} = |\psi\rangle|\psi\rangle + |\psi\rangle|\phi\rangle + |\phi\rangle|\psi\rangle + |\phi\rangle|\phi\rangle$ — a contradiction unless $|\psi\rangle = |\phi\rangle$.
+          <br><strong>Implication:</strong> quantum information cannot be copied. This is actually a feature — it underlies quantum cryptography, and means eavesdropper cannot copy a quantum message without disturbing it.
         </div>
 
         <h3>Quantum Teleportation</h3>
-        <p><strong>Setup:</strong> Alice &amp; Bob share $|\beta_{00}\rangle$; Alice holds unknown $|\psi\rangle = \alpha|0\rangle+\beta|1\rangle$</p>
+        <p>Teleportation allows Alice to send an <em>unknown</em> quantum state $|\psi\rangle = \alpha|0\rangle+\beta|1\rangle$ to Bob using only a shared entangled pair and 2 classical bits. Note: the state disappears from Alice (no-cloning is respected) and no faster-than-light communication occurs (Bob needs Alice's classical bits to finish).</p>
+        <p><strong>Setup:</strong> Alice &amp; Bob share $|\beta_{00}\rangle = \frac{|00\rangle+|11\rangle}{\sqrt2}$. Alice also holds the unknown qubit. Total initial state: $|\psi\rangle_A \otimes |\beta_{00}\rangle_{AB}$.</p>
         <ol class="steps">
-          <li><span class="step-num">1</span> Alice applies CNOT (her $|\psi\rangle$ as control)</li>
-          <li><span class="step-num">2</span> Alice applies $H$ to her first qubit</li>
-          <li><span class="step-num">3</span> Alice measures her 2 qubits → $M_1M_2 \in \{00,01,10,11\}$, each with prob $\tfrac{1}{4}$</li>
-          <li><span class="step-num">4</span> Alice calls Bob; Bob applies $Z^{M_1}X^{M_2}$ → recovers $|\psi\rangle$ ✓</li>
+          <li><span class="step-num">1</span> <strong>Alice applies CNOT</strong> with her $|\psi\rangle$ as control and her half of the Bell pair as target. The 3-qubit state becomes $\frac{1}{\sqrt2}[\alpha|0\rangle(|00\rangle+|11\rangle) + \beta|1\rangle(|10\rangle+|01\rangle)]$.</li>
+          <li><span class="step-num">2</span> <strong>Alice applies $H$</strong> to the first qubit (her $|\psi\rangle$). After $H$, expanding in the 4 Bell measurement outcomes, Bob's qubit gets correlated with Alice's measurement result.</li>
+          <li><span class="step-num">3</span> <strong>Alice measures</strong> her 2 qubits in the computational basis, getting one of $\{00, 01, 10, 11\}$ each with probability $\frac{1}{4}$. Her measurement collapses Bob's qubit to one of $\{\alpha|0\rangle+\beta|1\rangle,\;\alpha|1\rangle+\beta|0\rangle,\;\alpha|0\rangle-\beta|1\rangle,\;\alpha|1\rangle-\beta|0\rangle\}$.</li>
+          <li><span class="step-num">4</span> <strong>Alice calls Bob</strong> with 2 classical bits ($M_1 M_2$). Bob applies $Z^{M_1} X^{M_2}$ to correct for the measurement outcome — always recovering $|\psi\rangle = \alpha|0\rangle+\beta|1\rangle$ ✓</li>
         </ol>
         <div class="callout callout-green">
-          <div class="callout-label">Important Notes</div>
-          • Does <strong>not</strong> violate special relativity (classical communication required)<br>
-          • Does <strong>not</strong> violate no-cloning (Alice no longer has $|\psi\rangle$)
+          <div class="callout-label">Key Points</div>
+          • The 2 classical bits carry information about <em>which correction Bob needs</em>, not about $\alpha$, $\beta$<br>
+          • Does <strong>not</strong> violate special relativity — Bob must wait for classical message before state is useful<br>
+          • Does <strong>not</strong> violate no-cloning — Alice's qubit is destroyed by measurement; only Bob has the state<br>
+          • Teleportation works even though $\alpha$ and $\beta$ are unknown and unobservable (measuring them would disturb the state)
         </div>
 
         <h3>Deutsch–Jozsa Algorithm</h3>
+        <p>This is the first algorithm that gives an <em>exponential</em> speedup over classical computing. The problem: given a black-box function $f:\{0,1\}^n \to \{0,1\}$, determine whether $f$ is <strong>constant</strong> (always 0 or always 1) or <strong>balanced</strong> (exactly half 0s and half 1s).</p>
         <div class="compare-grid">
           <div class="compare-box classical">
             <div class="compare-label">⚙ Classical</div>
-            $2^{n-1}+1$ evaluations needed
+            Must check over half the inputs: worst case $2^{n-1}+1$ queries. With randomness, $O(1)$ queries but with some error probability.
           </div>
           <div class="compare-box quantum">
             <div class="compare-label">⚛ Quantum</div>
-            <strong>1 evaluation</strong> (exponential speedup)
+            <strong>Always 1 query</strong>, deterministic, zero error. Exponential speedup over deterministic classical.
           </div>
         </div>
-        <p><strong>Oracle:</strong> $U_f|xy\rangle = |x\rangle\otimes|y\oplus f(x)\rangle$</p>
+        <p><strong>The Oracle:</strong> $U_f|x\rangle|y\rangle = |x\rangle|y\oplus f(x)\rangle$. This evaluates $f$ "in parallel" on all $x$ at once when $|x\rangle$ is a superposition.</p>
         <ol class="steps">
-          <li><span class="step-num">1</span> Start: $|0\rangle^{\otimes n}|1\rangle$</li>
-          <li><span class="step-num">2</span> Apply $H^{\otimes n}\otimes H$</li>
-          <li><span class="step-num">3</span> Apply $U_f$ — picks up phase $(-1)^{f(x)}$</li>
-          <li><span class="step-num">4</span> Apply $H^{\otimes n}$</li>
-          <li><span class="step-num">5</span> Measure: all zeros → <strong>constant</strong>; any nonzero → <strong>balanced</strong></li>
+          <li><span class="step-num">1</span> Start with $|0\rangle^{\otimes n}|1\rangle$ ($n$ query register qubits in $|0\rangle$, one ancilla in $|1\rangle$)</li>
+          <li><span class="step-num">2</span> Apply $H^{\otimes n}\otimes H$: query register becomes $\frac{1}{\sqrt{2^n}}\sum_x|x\rangle$; ancilla becomes $|{-}\rangle = \frac{|0\rangle-|1\rangle}{\sqrt2}$</li>
+          <li><span class="step-num">3</span> Apply $U_f$: the ancilla being $|{-}\rangle$ causes <em>phase kickback</em> — instead of flipping the ancilla, $f(x)=1$ gives a $(-1)$ phase to $|x\rangle$. State becomes $\frac{1}{\sqrt{2^n}}\sum_x(-1)^{f(x)}|x\rangle\otimes|{-}\rangle$.</li>
+          <li><span class="step-num">4</span> Apply $H^{\otimes n}$ to query register: uses the identity $H^{\otimes n}|x\rangle = \frac{1}{\sqrt{2^n}}\sum_z(-1)^{[x\cdot z]}|z\rangle$</li>
+          <li><span class="step-num">5</span> Measure query register: if $f$ is <strong>constant</strong> all phases are equal → constructive interference at $|0\rangle^{\otimes n}$ → get $|00\cdots0\rangle$. If <strong>balanced</strong>, phases cancel at $|0\rangle^{\otimes n}$ → never get $|00\cdots0\rangle$.</li>
         </ol>
-        <div class="math-block">$$H^{\otimes n}|x\rangle = \frac{\sum_z (-1)^{[x\cdot z]}|z\rangle}{\sqrt{2^n}}$$</div>
+        <div class="math-block">$$H^{\otimes n}|x\rangle = \frac{1}{\sqrt{2^n}}\sum_{z\in\{0,1\}^n} (-1)^{[x\cdot z]}|z\rangle, \quad [x\cdot z] = x_1z_1\oplus x_2z_2\oplus\cdots\oplus x_nz_n$$</div>
+        <p>The key insight is <strong>quantum interference</strong>: amplitudes (complex numbers) from different computational paths add up, and the algorithm is designed so paths leading to wrong answers interfere destructively and the correct answer gets constructive interference.</p>
       </div>
     </div>
 
@@ -1062,60 +1129,61 @@ $$U_{CN} = \begin{pmatrix}1&0&0&0\\0&1&0&0\\0&0&0&1\\0&0&1&0\end{pmatrix}$$</div
       <div class="card-body">
 
         <h3>Postulate I — State Space</h3>
-        <ul>
-          <li>Every isolated system has a <strong>Hilbert space</strong></li>
-          <li>System state = unit vector $|\psi\rangle$ with $\langle\psi|\psi\rangle = 1$</li>
-          <li>Qubit: $|\psi\rangle = \alpha|0\rangle+\beta|1\rangle$, $|\alpha|^2+|\beta|^2=1$</li>
-        </ul>
+        <p>Every isolated physical system is associated with a complex <strong>Hilbert space</strong> $\mathcal{H}$. The <em>state</em> of the system is a unit vector $|\psi\rangle \in \mathcal{H}$ with $\langle\psi|\psi\rangle = 1$. For a qubit, $\mathcal{H} = \mathbb{C}^2$ and:</p>
+        <div class="math-block">$$|\psi\rangle = \alpha|0\rangle + \beta|1\rangle, \quad |\alpha|^2+|\beta|^2=1, \quad \alpha,\beta\in\mathbb{C}$$</div>
+        <p>The amplitudes $\alpha$ and $\beta$ are complex numbers — their squared magnitudes give probabilities. You cannot observe $\alpha$ and $\beta$ directly; measuring always yields $|0\rangle$ (prob $|\alpha|^2$) or $|1\rangle$ (prob $|\beta|^2$). The global phase $e^{i\phi}|\psi\rangle$ is physically indistinguishable from $|\psi\rangle$, so states are really rays in Hilbert space.</p>
 
         <h3>Postulate II — Unitary Evolution</h3>
-        <ul>
-          <li>$|\psi\rangle' = U|\psi\rangle$, with $UU^+ = I$</li>
-          <li>Schrödinger equation: $i\hbar\,\frac{d|\psi\rangle}{dt} = H|\psi\rangle$</li>
-          <li>$U(t,t_1) = e^{-iH(t-t_1)/\hbar}$, where $H^+ = H$ (Hamiltonian)</li>
-          <li>Any unitary: $U = e^{iK}$ with $K$ Hermitian</li>
-        </ul>
+        <p>Between measurements, a closed quantum system evolves unitarily. If the state is $|\psi\rangle$ at time $t_1$, at time $t$ it is:</p>
+        <div class="math-block">$$|\psi(t)\rangle = U(t,t_1)|\psi(t_1)\rangle, \quad U(t,t_1) = e^{-iH(t-t_1)/\hbar}$$</div>
+        <p>where $H$ is the <strong>Hamiltonian</strong> (the energy operator, which is Hermitian: $H^+=H$). This is the integrated form of the <strong>Schrödinger equation</strong>:</p>
+        <div class="math-block">$$i\hbar\frac{d|\psi\rangle}{dt} = H|\psi\rangle$$</div>
+        <p>In quantum computing, we usually set $\hbar=1$ and think of each quantum gate as a specific unitary $U$. Applying a gate is applying a unitary. Any unitary $U$ can always be written as $U = e^{iK}$ for some Hermitian $K$, showing gates and Hamiltonians are two sides of the same mathematical object.</p>
 
         <h3>Postulate III — Measurements</h3>
+        <p>Measurement is described by a collection of <strong>measurement operators</strong> $\{M_m\}$ indexed by outcome $m$. They must satisfy the completeness relation $\sum_m M_m^+M_m = I$ (probabilities sum to 1). If the system is in state $|\psi\rangle$:</p>
         <ul>
-          <li>Collection $\{M_m\}$ with completeness: $\sum_m M_m^+M_m = I$</li>
-          <li>Probability: $p(m) = \langle\psi|M_m^+M_m|\psi\rangle$</li>
-          <li>Post-measurement state: $|m\rangle = M_m|\psi\rangle/\sqrt{p(m)}$</li>
-          <li>Computational basis: $M_0=|0\rangle\langle0|$, $p(0)=|\alpha|^2$; $M_1=|1\rangle\langle1|$, $p(1)=|\beta|^2$</li>
+          <li>Probability of outcome $m$: $p(m) = \langle\psi|M_m^+M_m|\psi\rangle \geq 0$</li>
+          <li>State immediately after getting $m$: $\frac{M_m|\psi\rangle}{\sqrt{p(m)}}$ (state collapses/updates)</li>
+          <li>Example (computational basis): $M_0=|0\rangle\langle0|$, $p(0)=|\alpha|^2$; $M_1=|1\rangle\langle1|$, $p(1)=|\beta|^2$</li>
         </ul>
+        <div class="callout callout-orange">
+          <div class="callout-label">Measurement is irreversible</div>
+          Unlike gate operations (which are unitary/reversible), measurement is <strong>irreversible</strong> — the state collapses and you cannot recover the pre-measurement superposition. This is the "quantum-to-classical" boundary. All quantum algorithms must perform measurements at the end to extract classical answers.
+        </div>
 
-        <h3>Distinguishability</h3>
+        <h3>Distinguishability of Quantum States</h3>
+        <p>A fundamental consequence of the measurement postulate:</p>
         <ul>
-          <li><strong>Orthogonal states CAN</strong> be distinguished (with certainty)</li>
-          <li><strong>Non-orthogonal states CANNOT</strong> be distinguished with certainty</li>
+          <li><strong>Orthogonal states CAN be perfectly distinguished</strong>: if $\langle\phi|\psi\rangle = 0$ then there exists a measurement that identifies $|\psi\rangle$ vs $|\phi\rangle$ with certainty (just project onto each)</li>
+          <li><strong>Non-orthogonal states CANNOT be perfectly distinguished</strong>: any attempt to distinguish $|\psi\rangle$ and $|\phi\rangle$ when $\langle\phi|\psi\rangle \neq 0$ has some probability of error — this is provable from quantum mechanics</li>
         </ul>
+        <p>This has cryptographic importance: if someone intercepts a quantum key encoded in non-orthogonal states, they cannot identify the state without disturbing it.</p>
 
         <h3>Projective Measurements &amp; Observables</h3>
-        <ul>
-          <li>Projectors: $P_m^2=P_m$, $P_m^+=P_m$, $\sum_m P_m = I$</li>
-          <li>Observable: $M = \sum_m m\,P_m$</li>
-          <li>Expectation value: $\langle M\rangle = \langle\psi|M|\psi\rangle$</li>
-        </ul>
+        <p>A special important class of measurements where $M_m = P_m$ are projectors ($P_m^2=P_m$, $P_m^+=P_m$). An <strong>observable</strong> is a Hermitian operator $M = \sum_m m\,P_m$ whose eigenvalues $m$ are the possible measurement outcomes and whose eigenprojectors are the $P_m$'s. The expected value:</p>
+        <div class="math-block">$$\langle M\rangle = \langle\psi|M|\psi\rangle = \sum_m m\cdot p(m)$$</div>
+        <p>The variance $\Delta(M)^2 = \langle M^2\rangle - \langle M\rangle^2$ measures uncertainty in repeated measurements.</p>
 
         <h3>Heisenberg Uncertainty Principle</h3>
+        <p>For any two observables $C$ and $D$ with $[C,D]\neq 0$, there is a fundamental trade-off between how precisely you can know both simultaneously:</p>
         <div class="callout callout-orange">
           <div class="callout-label">Theorem</div>
           $$\Delta(C)\cdot\Delta(D) \geq \frac{1}{2}\left|\langle\psi|[C,D]|\psi\rangle\right|$$
-          Example: $C=X$, $D=Y$, $|\psi\rangle=|0\rangle$ → $\Delta(X)\cdot\Delta(Y) = 1 \geq 1$ ✓
+          For $C=X$, $D=Y$ in state $|0\rangle$: $[X,Y]=2iZ$ and $\langle 0|Z|0\rangle=1$, so $\Delta(X)\cdot\Delta(Y) \geq 1$.
         </div>
+        <p>This is not about measurement disturbance — it's a fundamental property of the state itself. If $[C,D]=0$, both can be known simultaneously without restriction. The uncertainty principle is a direct consequence of the non-commutativity of quantum operators.</p>
 
         <h3>POVM Measurements</h3>
-        <ul>
-          <li>Set $\{E_m\}$ with each $E_m \geq 0$ and $\sum_m E_m = I$</li>
-          <li>Used when we only care about probabilities, not post-measurement state</li>
-          <li>Can distinguish $|0\rangle$ vs $|{+}\rangle$ "sometimes, never wrong"</li>
-        </ul>
+        <p>A <strong>Positive Operator-Valued Measure (POVM)</strong> is the most general measurement description: a set $\{E_m\}$ with $E_m \geq 0$ (positive semi-definite) and $\sum_m E_m = I$. The probability of outcome $m$ is $p(m) = \langle\psi|E_m|\psi\rangle$.</p>
+        <p>POVMs are used when you care about probabilities but don't need the post-measurement state, or when you want more outcomes than the dimension allows. Key use case: distinguishing non-orthogonal states "sometimes, never wrong" with outcomes $\{$"definitely $|0\rangle$", "definitely $|{+}\rangle$", "don't know"$\}$. Projective measurements are a special case of POVMs where $E_m = P_m$.</p>
 
         <h3>Postulate IV — Composite Systems</h3>
+        <p>The state space of a composite system is the <strong>tensor product</strong> of the component state spaces: $\mathcal{H}_{AB} = \mathcal{H}_A \otimes \mathcal{H}_B$. For $n$ qubits, $\mathcal{H} = (\mathbb{C}^2)^{\otimes n}$ has dimension $2^n$.</p>
         <ul>
-          <li>$\mathcal{H}_{AB} = \mathcal{H}_A \otimes \mathcal{H}_B$</li>
-          <li><strong>Entanglement:</strong> state not writable as $|a\rangle\otimes|b\rangle$ — e.g. Bell states</li>
-          <li>Entanglement powers quantum computing advantage</li>
+          <li>If subsystems are independent: $|\psi_{AB}\rangle = |\psi_A\rangle\otimes|\psi_B\rangle$ (product state)</li>
+          <li>If entangled: state <em>cannot</em> be written as a product — measurements on $A$ affect $B$ instantaneously</li>
+          <li>Entanglement is the key resource for quantum computing, teleportation, and key distribution</li>
         </ul>
       </div>
     </div>
@@ -1134,44 +1202,60 @@ $$U_{CN} = \begin{pmatrix}1&0&0&0\\0&1&0&0\\0&0&0&1\\0&0&1&0\end{pmatrix}$$</div
       </div>
       <div class="card-body">
 
-        <h3>Definition</h3>
+        <h3>Why Density Operators?</h3>
+        <p>The state vector $|\psi\rangle$ describes a system you know <em>completely</em>. But in practice two situations arise where you cannot describe a system by a single ket:</p>
+        <ul>
+          <li><strong>Classical uncertainty:</strong> you prepared state $|\psi_1\rangle$ with probability $p_1$ or $|\psi_2\rangle$ with probability $p_2$, but you don't know which. This is a <em>classical mixture</em>.</li>
+          <li><strong>Subsystem of an entangled pair:</strong> if Alice and Bob share $|\beta_{00}\rangle = (|00\rangle+|11\rangle)/\sqrt{2}$, Alice's qubit alone cannot be assigned any single ket — the state is non-separable. The density matrix is the only correct description.</li>
+        </ul>
+        <p>The <strong>density operator</strong> unifies both cases:</p>
         <div class="math-block">$$\rho \equiv \sum_i p_i|\psi_i\rangle\langle\psi_i|$$</div>
+        <p>where $p_i \geq 0$ and $\sum_i p_i = 1$ are classical probabilities, and $|\psi_i\rangle$ are the possible quantum states.</p>
 
-        <h3>Properties</h3>
+        <h3>Characterizing Properties</h3>
+        <p>Any valid density operator satisfies exactly these three conditions (and any matrix satisfying them is a valid density operator):</p>
         <ul>
-          <li><strong>Trace:</strong> $\text{tr}(\rho) = 1$</li>
-          <li><strong>Positivity:</strong> $\langle\phi|\rho|\phi\rangle \geq 0$ for all $|\phi\rangle$</li>
-          <li>Under unitary: $\rho \to U\rho U^+$</li>
-          <li>Measurement outcome $m$: $p(m) = \text{tr}(M_m^+M_m\,\rho)$</li>
-          <li>Post-measurement: $\rho_m = M_m\rho M_m^+ / \text{tr}(M_m^+M_m\rho)$</li>
+          <li><strong>Unit trace:</strong> $\text{tr}(\rho) = 1$ — follows from $\sum_i p_i = 1$</li>
+          <li><strong>Hermitian:</strong> $\rho^+ = \rho$ — outer products $|\psi\rangle\langle\psi|$ are always Hermitian</li>
+          <li><strong>Positive semi-definite:</strong> $\langle\phi|\rho|\phi\rangle \geq 0$ for all $|\phi\rangle$ — probabilities cannot be negative</li>
         </ul>
+        <p>The dynamics and measurement rules generalize naturally: under a unitary gate $\rho \to U\rho U^+$; the probability of measurement outcome $m$ is $p(m) = \text{tr}(M_m^+M_m\,\rho)$; the post-measurement state is $\rho_m = M_m\rho M_m^+ / \text{tr}(M_m^+M_m\rho)$.</p>
 
-        <h3>Pure vs Mixed States</h3>
-        <div class="compare-grid">
-          <div class="compare-box classical">
-            <div class="compare-label">Pure State</div>
-            $\rho = |\psi\rangle\langle\psi|$<br>$\text{tr}(\rho^2) = 1$<br>Surface of Bloch sphere ($|\vec{r}|=1$)
-          </div>
-          <div class="compare-box quantum">
-            <div class="compare-label">Mixed State</div>
-            $\text{tr}(\rho^2) < 1$<br><strong>Maximally mixed:</strong> $\rho = I/d$<br>Interior of Bloch ball ($|\vec{r}|<1$)
-          </div>
+        <h3>Pure vs Mixed States — The Test</h3>
+        <p>A state is <strong>pure</strong> if it is a single ket ($\rho = |\psi\rangle\langle\psi|$). The cleanest test is the idempotency condition:</p>
+        <div class="callout callout-cyan">
+          <div class="callout-label">Pure / Mixed Criterion</div>
+          $\rho$ is pure $\iff$ $\text{tr}(\rho^2) = 1$<br>
+          $\rho$ is mixed $\iff$ $\text{tr}(\rho^2) < 1$<br><br>
+          <strong>Worked example:</strong> Consider $\rho = p|0\rangle\langle0| + (1-p)|1\rangle\langle1| = \text{diag}(p, 1-p)$.<br>
+          Then $\rho^2 = \text{diag}(p^2, (1-p)^2)$ and $\text{tr}(\rho^2) = p^2+(1-p)^2$, which equals 1 only when $p\in\{0,1\}$.
         </div>
 
-        <h3>General Single-Qubit Density Matrix</h3>
-        <div class="math-block">$$\rho = \frac{I + \vec{r}\cdot\vec{\sigma}}{2}, \quad |\vec{r}| \leq 1 \text{ (Bloch ball)}$$</div>
+        <h3>The Bloch Ball Picture</h3>
+        <p>Every single-qubit density matrix can be written uniquely as:</p>
+        <div class="math-block">$$\rho = \frac{I + \vec{r}\cdot\vec{\sigma}}{2}, \quad \vec{r} = (r_x, r_y, r_z)\in\mathbb{R}^3, \quad |\vec{r}| \leq 1$$</div>
+        <p>The condition $\text{tr}(\rho)=1$ is automatic; positivity forces $|\vec{r}|\leq1$. Geometrically: pure states live on the <em>surface</em> of the Bloch sphere ($|\vec{r}|=1$), while mixed states live in the <em>interior</em> (the "Bloch ball"). The maximally mixed state $\rho = I/2$ sits at the center $\vec{r}=0$ — it contains no information about any particular direction and equals the average over all pure states.</p>
 
-        <h3>Reduced Density Operator</h3>
-        <ul>
-          <li>Only system $A$ observable: $\rho^A = \text{tr}_B(\rho^{AB})$ (partial trace)</li>
-          <li>Product state $\rho^{AB} = \rho\otimes\sigma$: partial traces give $\rho^A = \rho$, $\rho^B = \sigma$</li>
-          <li>Bell state $|\beta_{00}\rangle$: tracing one qubit gives $\rho_1 = I/2$ (maximally mixed!)</li>
-        </ul>
-
+        <h3>Partial Trace and Subsystems</h3>
+        <p>Given a bipartite state $\rho^{AB}$ on $\mathcal{H}_A\otimes\mathcal{H}_B$, the <strong>reduced density operator</strong> for subsystem $A$ is obtained by the <strong>partial trace</strong>:</p>
+        <div class="math-block">$$\rho^A = \text{tr}_B(\rho^{AB}) \equiv \sum_j \langle j|_B\,\rho^{AB}\,|j\rangle_B$$</div>
+        <p>This is the unique operation such that for any observable $M$ on $A$ alone: $\langle M\otimes I\rangle_{\rho^{AB}} = \langle M\rangle_{\rho^A}$.</p>
         <div class="callout callout-indigo">
-          <div class="callout-label">Teleportation Insight</div>
-          Before Alice calls, Bob's reduced density matrix is $\rho_\text{Bob} = I/2$ — he has <strong>zero information</strong> about $|\psi\rangle$. No faster-than-light signaling.
+          <div class="callout-label">Bell state calculation</div>
+          For $|\beta_{00}\rangle = (|00\rangle+|11\rangle)/\sqrt{2}$, the full state is:<br>
+          $\rho^{AB} = \frac{1}{2}(|00\rangle+|11\rangle)(\langle00|+\langle11|) = \frac{1}{2}(|00\rangle\langle00|+|00\rangle\langle11|+|11\rangle\langle00|+|11\rangle\langle11|)$<br><br>
+          Tracing over $B$: $\rho^A = \langle0|_B\rho^{AB}|0\rangle_B + \langle1|_B\rho^{AB}|1\rangle_B = \tfrac{1}{2}|0\rangle\langle0| + \tfrac{1}{2}|1\rangle\langle1| = \frac{I}{2}$<br><br>
+          Bob's reduced state is <strong>maximally mixed</strong>. This is why quantum teleportation cannot send information faster than light — before Alice's classical message, Bob has no information about $|\psi\rangle$ at all.
         </div>
+
+        <h3>Non-Uniqueness of Ensembles</h3>
+        <p>A surprising fact: very different physical preparation procedures can yield the same density matrix $\rho$. For example, $\rho = I/2$ can arise from:</p>
+        <ul>
+          <li>Flipping a fair coin and preparing $|0\rangle$ or $|1\rangle$</li>
+          <li>Flipping a fair coin and preparing $|{+}\rangle$ or $|{-}\rangle$</li>
+          <li>Taking one qubit of the Bell state $|\beta_{00}\rangle$</li>
+        </ul>
+        <p>No measurement can distinguish these scenarios — they are operationally equivalent. This underpins the security of quantum key distribution and the impossibility of superluminal communication.</p>
       </div>
     </div>
 
@@ -1189,28 +1273,44 @@ $$U_{CN} = \begin{pmatrix}1&0&0&0\\0&1&0&0\\0&0&0&1\\0&0&1&0\end{pmatrix}$$</div
       </div>
       <div class="card-body">
 
-        <h3>Setup</h3>
+        <h3>Einstein's Objection — The EPR Argument</h3>
+        <p>In 1935, Einstein, Podolsky, and Rosen (EPR) argued that quantum mechanics must be <em>incomplete</em>. Their reasoning was based on two intuitive assumptions about physical reality:</p>
         <ul>
-          <li>Charlie prepares 2 particles; Alice measures $Q$ or $R$ (outcomes $\pm1$); Bob measures $S$ or $T$ (outcomes $\pm1$)</li>
-          <li>Measurements are <strong>causally disconnected</strong></li>
+          <li><strong>Reality:</strong> If you can predict the outcome of a measurement with certainty <em>without disturbing the system</em>, then there is an element of physical reality corresponding to that measurement.</li>
+          <li><strong>Locality:</strong> A measurement in one location cannot instantly affect a system in a distant location (no faster-than-light influence).</li>
         </ul>
+        <p>EPR argued: measure one qubit of an entangled pair, instantly you know what you'd get measuring the other. Since the systems are space-like separated, this "knowledge" must have been encoded in both particles all along as <strong>hidden variables</strong>. Quantum mechanics, by only giving probabilistic predictions, must be incomplete.</p>
 
-        <h3>Bell Inequality (Classical / Local Realism)</h3>
-        <div class="math-block">$$QS + RS + RT - QT = (Q+R)S + (R-Q)T = \pm 2$$
-\Rightarrow\quad E(QS) + E(RS) + E(RT) - E(QT) \leq 2</div>
+        <h3>Bell's Setup — Local Hidden Variable Model</h3>
+        <p>John Bell (1964) made the EPR argument concrete and testable. Suppose every particle carries hidden variables $\lambda$ (classical pre-determined values) such that measurement outcomes are fully determined by $\lambda$ plus the measurement choice. Charlie generates pairs with shared $\lambda$; Alice chooses to measure $Q$ or $R$ on her qubit (outcomes $\pm 1$); Bob independently chooses $S$ or $T$ (outcomes $\pm 1$).</p>
 
-        <h3>Quantum Mechanics Violation</h3>
-        <p>Charlie prepares $|\psi\rangle = (|01\rangle - |10\rangle)/\sqrt{2}$</p>
-        <p>Alice: $Q=Z_1$, $R=X_1$; Bob: $S=\frac{-Z_2-X_2}{\sqrt2}$, $T=\frac{Z_2-X_2}{\sqrt2}$</p>
-        <div class="math-block">$$E(QS) = E(RS) = E(RT) = \tfrac{1}{\sqrt{2}}, \quad E(QT) = -\tfrac{1}{\sqrt{2}}$$
-$$\Rightarrow\quad E(QS)+E(RS)+E(RT)-E(QT) = \frac{4}{\sqrt{2}} = 2\sqrt{2} \approx 2.83 > 2$$</div>
+        <h3>Derivation of the Bell Inequality</h3>
+        <p>With pre-determined outcomes $Q, R, S, T \in \{+1, -1\}$, observe the algebraic identity:</p>
+        <div class="math-block">$$QS + RS + RT - QT = (Q+R)S + (R-Q)T$$</div>
+        <p>Since $Q,R \in \{+1,-1\}$, either $Q+R=\pm2$ and $R-Q=0$, or $R-Q=\pm2$ and $Q+R=0$. In either case the entire expression equals $\pm 2$. Taking expectation values over any distribution of hidden variables $\lambda$:</p>
+        <div class="math-block">$$E(QS) + E(RS) + E(RT) - E(QT) = \mathbb{E}[QS+RS+RT-QT] \leq 2$$</div>
+        <p>This is the <strong>Bell inequality (CHSH form)</strong>. Any theory with local hidden variables must obey this bound. This is a hard mathematical fact — no trick is needed, just $|Q|=|R|=|S|=|T|=1$.</p>
+
+        <h3>Quantum Mechanics Violates the Inequality</h3>
+        <p>Charlie prepares the singlet state $|\psi^-\rangle = (|01\rangle - |10\rangle)/\sqrt{2}$. Alice measures with observables:</p>
+        <ul>
+          <li>$Q = Z_1$, $\quad R = X_1$</li>
+          <li>$S = \dfrac{-Z_2 - X_2}{\sqrt{2}}$, $\quad T = \dfrac{Z_2 - X_2}{\sqrt{2}}$</li>
+        </ul>
+        <p>Computing each correlator explicitly (tedious but straightforward using inner products):</p>
+        <div class="math-block">$$E(QS) = E(RS) = E(RT) = +\frac{1}{\sqrt{2}}, \qquad E(QT) = -\frac{1}{\sqrt{2}}$$</div>
+        <div class="math-block">$$E(QS)+E(RS)+E(RT)-E(QT) = \frac{1}{\sqrt{2}}+\frac{1}{\sqrt{2}}+\frac{1}{\sqrt{2}}+\frac{1}{\sqrt{2}} = \frac{4}{\sqrt{2}} = 2\sqrt{2} \approx 2.83$$</div>
+
+        <h3>Experimental Verdict</h3>
+        <p>The CHSH inequality ($\leq 2$) has been tested in many experiments. The landmark Aspect experiments (1982) and subsequent loophole-free Bell tests (2015–2022) all confirm violations close to the quantum maximum $2\sqrt{2}$. </p>
 
         <div class="callout callout-pink">
-          <div class="callout-label">Conclusion</div>
-          Bell inequality is <strong>violated</strong> by QM. Experiments confirm QM. Therefore:<br><br>
-          → <strong>Local realism is wrong</strong> — properties do not pre-exist independently of measurement.<br>
-          → No one has modified QM postulates and still reproduced experimental physics.<br>
-          → For fun: read about <strong>ER=EPR</strong> (wormholes ↔ entanglement).
+          <div class="callout-label">What the Violation Means</div>
+          The violation of Bell's inequality is not just a mathematical curiosity — it has profound philosophical implications:<br><br>
+          → <strong>No local hidden variable theory</strong> can reproduce all predictions of quantum mechanics. Pre-existing properties independent of measurement do <em>not</em> exist.<br>
+          → <strong>Nature is non-local</strong> in the sense that entangled particles share correlations that cannot be explained by anything carried locally.<br>
+          → Despite this non-locality, you cannot exploit it for faster-than-light communication (the marginal distributions are always consistent with local operations).<br><br>
+          For the philosophically adventurous: the <strong>ER=EPR</strong> conjecture (Maldacena &amp; Susskind) suggests entanglement between particles is dual to wormholes connecting their spacetime regions.
         </div>
       </div>
     </div>
@@ -1229,54 +1329,49 @@ $$\Rightarrow\quad E(QS)+E(RS)+E(RT)-E(QT) = \frac{4}{\sqrt{2}} = 2\sqrt{2} \app
       </div>
       <div class="card-body">
 
-        <h3>Universal Gate Set</h3>
+        <h3>The Goal: Universal Gate Sets</h3>
         <div class="callout callout-cyan">
-          <div class="callout-label">Roadmap</div>
+          <div class="callout-label">Universality Roadmap</div>
           1. Any $n$-qubit unitary → product of <strong>two-level unitaries</strong><br>
           2. Any two-level unitary → <strong>single-qubit gates + CNOT</strong><br>
           3. Any single-qubit gate → approximated by <strong>H and T</strong><br><br>
           ✦ Universal set: $\{H,\, T,\, \text{CNOT}\}$
         </div>
 
-        <h3>Single-Qubit Bloch Sphere</h3>
-        <ul>
-          <li>$|\psi\rangle = a|0\rangle+b|1\rangle \leftrightarrow$ unit vector $\vec{n}$ on Bloch sphere</li>
-          <li>Opposite points on Bloch sphere → orthogonal states</li>
-          <li>Unitary 2×2: 4 free real parameters (after constraints from $UU^+=I$)</li>
-        </ul>
+        <h3>Bloch Sphere Parameterization</h3>
+        <p>Any single-qubit state can be written as a point on the Bloch sphere using two angles $\theta \in [0,\pi]$ and $\phi \in [0,2\pi)$:</p>
+        <div class="math-block">$$|\psi\rangle = \cos\frac{\theta}{2}|0\rangle + e^{i\phi}\sin\frac{\theta}{2}|1\rangle$$</div>
+        <p>The polar angle $\theta$ controls the mixture of $|0\rangle$ and $|1\rangle$; the azimuthal angle $\phi$ is the relative phase. Measuring in the $Z$ basis gives $|0\rangle$ with probability $\cos^2(\theta/2)$. Opposite points on the sphere are orthogonal states; for example the equatorial points $|{+}\rangle$ and $|{-}\rangle$ lie at $\theta=\pi/2$.</p>
 
         <h3>Rotation Operators</h3>
-        <div class="math-block">$$R_x(\theta) = e^{-i\theta X/2} = \cos\tfrac{\theta}{2}I - i\sin\tfrac{\theta}{2}X$$
-$$R_y(\theta) = e^{-i\theta Y/2} = \cos\tfrac{\theta}{2}I - i\sin\tfrac{\theta}{2}Y$$
-$$R_z(\theta) = e^{-i\theta Z/2} = \text{diag}(e^{-i\theta/2},\, e^{i\theta/2})$$</div>
-        <ul>
-          <li>$H = (X+Z)/\sqrt{2}$, &nbsp; $S = T^2$, &nbsp; $Z = S^2$</li>
-          <li>$S \sim R_z(\pi/2)$, &nbsp; $T \sim R_z(\pi/4)$ (up to global phase)</li>
-        </ul>
+        <p>Every single-qubit unitary is a rotation of the Bloch sphere. Rotations about the coordinate axes by angle $\theta$:</p>
+        <div class="math-block">$$R_x(\theta) = e^{-i\theta X/2} = \cos\tfrac{\theta}{2}I - i\sin\tfrac{\theta}{2}X = \begin{pmatrix}\cos\frac{\theta}{2} & -i\sin\frac{\theta}{2}\\ -i\sin\frac{\theta}{2} & \cos\frac{\theta}{2}\end{pmatrix}$$
+$$R_z(\theta) = e^{-i\theta Z/2} = \begin{pmatrix}e^{-i\theta/2} & 0\\ 0 & e^{i\theta/2}\end{pmatrix}$$</div>
+        <p>These follow from the formula $e^{i\theta\hat{n}\cdot\vec{\sigma}/2} = \cos(\theta/2)I + i\sin(\theta/2)(\hat{n}\cdot\vec{\sigma})$. Common gates as rotations (up to global phase): $H = R_y(\pi/2)R_z(\pi)$; $S = R_z(\pi/2)$; $T = R_z(\pi/4)$.</p>
 
         <h3>Decomposition Theorems</h3>
+        <p>Three equivalent decomposition theorems allow any single-qubit unitary $U$ to be written in terms of rotations:</p>
         <ul>
-          <li><strong>Theorem I:</strong> $U = e^{i\alpha}R_{\hat{n}}(\theta)$</li>
-          <li><strong>Theorem II (Z-Y):</strong> $U = e^{i\alpha}R_z(\beta)R_y(\gamma)R_z(\delta)$</li>
-          <li><strong>Theorem III:</strong> Any two non-parallel axes $\hat{m},\hat{n}$: $U = e^{i\alpha}R_{\hat{n}}(\beta)R_{\hat{m}}(\gamma)R_{\hat{n}}(\delta)$</li>
+          <li><strong>Theorem I:</strong> $U = e^{i\alpha}R_{\hat{n}}(\theta)$ for some axis $\hat{n}$ and angle $\theta$ — every $U$ is a rotation</li>
+          <li><strong>Theorem II (Z-Y Decomposition):</strong> $U = e^{i\alpha}R_z(\beta)R_y(\gamma)R_z(\delta)$ for some angles — three Euler rotations suffice</li>
+          <li><strong>Theorem III (Arbitrary Axes):</strong> For any two non-parallel axes $\hat{m},\hat{n}$: $U = e^{i\alpha}R_{\hat{n}}(\beta)R_{\hat{m}}(\gamma)R_{\hat{n}}(\delta)$ — you only need two axes</li>
         </ul>
         <div class="callout callout-green">
-          <div class="callout-label">Key Consequence</div>
-          For any single-qubit gate $U$, there exist unitaries $A,B,C$ with $ABC = I$ and $U = e^{i\alpha}AXBXC$
+          <div class="callout-label">ABC Decomposition and Controlled-U</div>
+          Theorem II gives an especially useful consequence: for any single-qubit $U$, there exist unitaries $A,B,C$ with $ABC=I$ and $e^{i\alpha}AXBXC = U$. This is directly used to build a <strong>controlled-U gate</strong> from ordinary gates: place $A$ on the target, a CNOT, then $B$, another CNOT, then $C$, with a phase gate on the control. The CNOT "turns on" only when the control is $|1\rangle$.
         </div>
 
-        <h3>Controlled Operations</h3>
-        <ul>
-          <li><strong>CNOT:</strong> $|c\rangle|t\rangle \to |c\rangle|t\oplus c\rangle$</li>
-          <li><strong>Controlled-U:</strong> $|c\rangle|t\rangle \to |c\rangle U^c|t\rangle$</li>
-          <li>Flipping control/target: $H^{\otimes2}\cdot U_{CN}\cdot H^{\otimes2}$ implements reversed CNOT</li>
-        </ul>
+        <h3>Controlled Operations &amp; $C_n(U)$</h3>
+        <p>A <strong>controlled-$U$</strong> gate applies $U$ to the target if and only if the control qubit is $|1\rangle$: $|c\rangle|t\rangle \to |c\rangle U^c|t\rangle$. In matrix form it is block-diagonal: $\text{diag}(I, U)$.</p>
+        <p>The $n$-fold controlled-$U$ gate, $C_n(U)$, applies $U$ to the target only when all $n$ control qubits are $|1\rangle$. With ancilla qubits, $C_n(U)$ can be built from $O(n^2)$ elementary gates by a recursive decomposition using the ABC theorem. The Toffoli gate is $C_2(X)$ and serves as the classical NAND/AND within quantum circuits.</p>
 
         <h3>Measurement Principles</h3>
+        <p>Two principles simplify circuit analysis without changing computational power:</p>
         <ul>
-          <li><strong>Deferred measurement:</strong> intermediate measurements can always be moved to end</li>
-          <li><strong>Implicit measurement:</strong> unterminated quantum wires are assumed measured</li>
+          <li><strong>Deferred Measurement Principle:</strong> Any intermediate measurement in a circuit can be moved to the end without changing the circuit's output distribution. This allows us to analyze circuits as purely unitary until the final read-out.</li>
+          <li><strong>Implicit Measurement Principle:</strong> Any qubit not explicitly measured at the end of a circuit can be treated as if it were measured in the computational basis and the result discarded. The traced-out state of remaining qubits is unaffected.</li>
         </ul>
+        <p>Together these justify the standard circuit model: apply unitaries, measure everything at the end.</p>
       </div>
     </div>
 
@@ -1294,29 +1389,30 @@ $$R_z(\theta) = e^{-i\theta Z/2} = \text{diag}(e^{-i\theta/2},\, e^{i\theta/2})$
       </div>
       <div class="card-body">
 
-        <h3>Decomposition into Two-Level Unitaries</h3>
-        <ul>
-          <li>Any $2^n\times2^n$ unitary $U$ decomposes as product of $\leq 2^{n-1}(2^n-1)$ two-level unitaries</li>
-          <li>For $d\times d$ unitary: need $d(d-1)/2$ two-level gates</li>
-          <li>Construction: multiply $U$ by matrices $U_1,\ldots,U_{d-1}$ to zero out subdiagonal, reducing to block form</li>
-        </ul>
+        <h3>Two-Level Unitaries</h3>
+        <p>A <strong>two-level unitary</strong> is a $d\times d$ unitary matrix that acts non-trivially only on a 2-dimensional subspace. In matrix form, it is the identity everywhere except a $2\times 2$ block at rows/columns $i$ and $j$:</p>
+        <div class="math-block">$$U_{ij} = I + (u_{11}-1)|i\rangle\langle i| + u_{12}|i\rangle\langle j| + u_{21}|j\rangle\langle i| + (u_{22}-1)|j\rangle\langle j|$$</div>
+        <p>The key theorem is that <em>any</em> $d\times d$ unitary $U$ can be written as a product of at most $d(d-1)/2$ two-level unitaries. The proof is constructive: multiply $U$ on the left by two-level unitaries $U_1, U_2, \ldots$ that zero out the sub-diagonal entries one by one, reducing $U$ to the identity. For an $n$-qubit system ($d=2^n$), you need at most $2^{n-1}(2^n-1)$ two-level unitaries.</p>
 
-        <h3>Single-Qubit + CNOT = Universal</h3>
+        <h3>From Two-Level Unitaries to CNOT + Single-Qubit</h3>
+        <p>Each two-level unitary on an $n$-qubit Hilbert space acts on two computational basis states $|s\rangle$ and $|t\rangle$. The reduction to elementary gates uses a <strong>Gray code</strong>: a sequence of binary strings where consecutive strings differ by exactly one bit. For example, $00 \to 01 \to 11 \to 10$ is a Gray code connecting $00$ and $10$.</p>
         <ul>
-          <li>Decompose any two-level unitary using a <strong>Gray code</strong> connecting binary strings $s$ and $t$</li>
-          <li>Each Gray code step (flip 1 bit) = one controlled-CNOT operation</li>
-          <li>Apply controlled-$\tilde{U}$ at the middle step; undo Gray code steps in reverse</li>
+          <li>Each bit-flip in the Gray code corresponds to a CNOT or multi-controlled NOT gate</li>
+          <li>Walk $|s\rangle$ to $|t\rangle$ via the Gray code using these CNOTs</li>
+          <li>At the final step, apply a controlled single-qubit gate $\tilde{U}$ (the core two-level action)</li>
+          <li>Undo the Gray code steps in reverse to restore all other basis states</li>
         </ul>
+        <p>The total gate count is $O(n^2)$ per two-level unitary, giving $O(n^2 \cdot 4^n)$ elementary gates for an arbitrary $n$-qubit unitary — exponential, but finite and constructive.</p>
 
         <h3>Approximating Single-Qubit Gates with $\{H, T\}$</h3>
-        <div class="math-block">$$T = e^{i\pi/8}R_z(\pi/4), \quad HTH = e^{i\pi/8}R_x(\pi/4)$$
-$$e^{-i\pi/4}\cdot T \cdot HTH = R_{\hat{n}}(\theta), \quad \frac{\theta}{2\pi}\text{ is irrational}$$</div>
+        <p>The $H$ and $T$ gates alone can approximate <em>any</em> single-qubit gate to arbitrary precision. The core insight is that a specific combination generates an <em>irrational</em> rotation angle:</p>
+        <div class="math-block">$$T = e^{i\pi/8}R_z(\pi/4), \qquad HTH = e^{i\pi/8}R_x(\pi/4)$$
+$$R = e^{-i\pi/4}\cdot T\cdot HTH = R_{\hat{n}}(\theta), \quad \text{where } \frac{\theta}{2\pi} \text{ is irrational}$$</div>
         <div class="callout callout-indigo">
           <div class="callout-label">Pigeonhole Argument</div>
-          For $N = \lceil 2\pi/\delta\rceil + 1$ angles $\theta_k = k\theta \pmod{2\pi}$, two must fall within $\delta$ of each other
-          → can approximate rotation by arbitrarily small angle → approximate any rotation.
+          Since $\theta/2\pi$ is irrational, the angles $\theta_k = k\theta\pmod{2\pi}$ for $k=0,1,2,\ldots$ are all distinct and <strong>dense</strong> in $[0,2\pi)$. The pigeonhole principle gives this quantitatively: for $N = \lceil 2\pi/\varepsilon\rceil + 1$ consecutive values, at least two must fall within $\varepsilon$ of each other. So $\theta_a \approx \theta_b$ means $R^{a-b}$ is a rotation by an angle less than $\varepsilon$ in absolute value. Composing powers and inverses, you can achieve any rotation to precision $\varepsilon$ using $O(1/\varepsilon)$ gates from $\{H,T\}$.
         </div>
-        <p style="color:var(--text2);font-size:0.88rem">Error metric: $E(U,V) = \max_{|\psi\rangle}\|(U-V)|\psi\rangle\|$</p>
+        <p>The error metric used is $E(U,V) = \max_{|\psi\rangle}\|(U-V)|\psi\rangle\|$ (worst-case vector distance). The stronger <strong>Solovay-Kitaev theorem</strong> shows that $O(\log^c(1/\varepsilon))$ gates suffice for some constant $c$, making efficient approximation practical for fault-tolerant quantum computing where only $\{H,T,\text{CNOT}\}$ are directly implemented error-corrected.</p>
       </div>
     </div>
 
@@ -1334,48 +1430,54 @@ $$e^{-i\pi/4}\cdot T \cdot HTH = R_{\hat{n}}(\theta), \quad \frac{\theta}{2\pi}\
       </div>
       <div class="card-body">
 
-        <h3>Context: Shor's Algorithm</h3>
+        <h3>Context: From Factoring to Fourier</h3>
         <div class="compare-grid">
           <div class="compare-box classical">
             <div class="compare-label">Classical Factoring</div>
-            $\sim\exp\!\left(n^{1/3}\ln^{2/3}n\right)$ operations (Number Field Sieve)
+            $\sim\exp\!\left(n^{1/3}\ln^{2/3}n\right)$ operations<br>(Number Field Sieve — sub-exponential)
           </div>
           <div class="compare-box quantum">
             <div class="compare-label">Shor's Quantum</div>
-            $\sim n^2\ln n\ln\ln n$ operations (polynomial!)
+            $\sim n^2\ln n\ln\ln n$ operations<br>(polynomial — efficient!)
           </div>
         </div>
+        <p>The key subroutine in Shor's algorithm is <em>period finding</em>: given $f(x) = a^x \bmod N$, find the smallest $r$ with $f(x+r)=f(x)$ for all $x$. Period finding reduces to phase estimation, which requires the Quantum Fourier Transform. The qFT is thus the heart of the most famous quantum algorithm — breaking RSA.</p>
 
-        <h3>Classical DFT</h3>
+        <h3>Classical vs Quantum DFT</h3>
+        <p>The classical Discrete Fourier Transform (DFT) on a vector of coefficients $x_0,\ldots,x_{N-1}$ computes:</p>
         <div class="math-block">$$y_k = \frac{1}{\sqrt{N}}\sum_{j=0}^{N-1} x_j\, e^{2\pi ijk/N}$$</div>
-
-        <h3>Quantum Fourier Transform</h3>
+        <p>The FFT algorithm computes this in $O(N\log N)$ classical operations. The qFT performs the <em>same linear transformation</em> but on quantum amplitudes: it maps computational basis state $|j\rangle$ to a superposition. Because the qFT acts on an exponentially large superposition simultaneously, $n$ qubits can do what the classical FFT needs $N = 2^n$ numbers to do explicitly.</p>
         <div class="math-block">$$|j\rangle \xrightarrow{\text{qFT}} \frac{1}{\sqrt{N}}\sum_{k=0}^{N-1} e^{2\pi ijk/N}|k\rangle$$</div>
 
-        <h3>Product Representation (Key Theorem)</h3>
+        <h3>Product Form — The Key to Efficiency</h3>
         <div class="callout callout-cyan">
-          <div class="callout-label">Theorem</div>
-          For $N = 2^n$, $|j\rangle = |j_1 j_2\cdots j_n\rangle$:
-          $$\text{qFT}|j\rangle = \frac{\left(|0\rangle+e^{2\pi i\cdot 0.j_n}|1\rangle\right)\left(|0\rangle+e^{2\pi i\cdot 0.j_{n-1}j_n}|1\rangle\right)\cdots\left(|0\rangle+e^{2\pi i\cdot 0.j_1\cdots j_n}|1\rangle\right)}{2^{n/2}}$$
-          where $0.j_\ell\cdots j_m \equiv j_\ell/2^1 + j_{\ell+1}/2^2 + \cdots + j_m/2^{m-\ell+1}$
+          <div class="callout-label">Product Representation Theorem</div>
+          For $N = 2^n$, writing $j = j_1 2^{n-1} + j_2 2^{n-2} + \cdots + j_n 2^0$ in binary:
+          $$\text{qFT}|j\rangle = \frac{1}{2^{n/2}}\left(|0\rangle+e^{2\pi i\cdot 0.j_n}|1\rangle\right)\otimes\left(|0\rangle+e^{2\pi i\cdot 0.j_{n-1}j_n}|1\rangle\right)\otimes\cdots\otimes\left(|0\rangle+e^{2\pi i\cdot 0.j_1j_2\cdots j_n}|1\rangle\right)$$
+          where $0.j_\ell\cdots j_m \equiv \sum_{k=\ell}^{m} j_k 2^{\ell-k-1}$ is a binary fraction.
         </div>
+        <p>This <strong>product form</strong> is what makes the qFT efficient. Each qubit only needs to "see" phase contributions from lower-order bits of $j$ — the entire $2^n$-dimensional unitary can be built from $O(n^2)$ two-qubit gates rather than the $O(n \cdot 2^n)$ work needed classically for the same transform.</p>
 
-        <h3>qFT Circuit</h3>
-        <ul>
-          <li>Gates: $R_k = \text{diag}(1,\, e^{2\pi i/2^k})$ where $R_1=Z$, $R_2=S$, $R_3=T$</li>
-          <li>For each qubit $|j_\ell\rangle$: apply $H$, then controlled-$R_k$ gates</li>
-          <li>Final swap to reverse qubit order → circuit depth $O(n^2)$</li>
-        </ul>
+        <h3>qFT Circuit — $O(n^2)$ Gates</h3>
+        <p>For each qubit $|j_\ell\rangle$ ($\ell = 1, \ldots, n$), the circuit applies:</p>
+        <ol class="steps">
+          <li><span class="step-num">H</span> Hadamard gate on qubit $\ell$: creates the $|0\rangle+e^{i\cdot}|1\rangle$ superposition</li>
+          <li><span class="step-num">R</span> Controlled-$R_k$ gates where $R_k = \text{diag}(1, e^{2\pi i/2^k})$, controlled by each subsequent qubit $j_{\ell+1}, \ldots, j_n$</li>
+          <li><span class="step-num">↔</span> Final SWAP network to reverse qubit order (the product form comes out in reverse)</li>
+        </ol>
+        <p>Total: $n + (n-1) + \cdots + 1 = n(n+1)/2$ gates plus $\lfloor n/2\rfloor$ swaps, so $O(n^2)$ gates total. Compare: the classical FFT needs $O(n\cdot 2^n)$ operations for the same dimension transform.</p>
 
         <h3>Phase Estimation Algorithm</h3>
-        <p><strong>Task:</strong> Given $U|u\rangle = e^{2\pi i\varphi}|u\rangle$, estimate $\varphi$ to precision $2^{-t}$</p>
+        <p><strong>Problem:</strong> Given a unitary $U$ with eigenvector $|u\rangle$ (i.e. $U|u\rangle = e^{2\pi i\varphi}|u\rangle$), estimate $\varphi\in[0,1)$ to $t$-bit precision. This is solvable efficiently because $\varphi$ is encoded in a relative phase — something interference can amplify.</p>
         <ol class="steps">
-          <li><span class="step-num">1</span> Initialize $|0\rangle^{\otimes t}\otimes|u\rangle$; apply $H$ to each of the $t$ control qubits</li>
-          <li><span class="step-num">2</span> Apply controlled-$U^{2^j}$ for $j=0,1,\ldots,t-1$</li>
-          <li><span class="step-num">3</span> Result in first register: $U_\text{qFT}|\varphi_1\cdots\varphi_t\rangle\otimes|u\rangle$</li>
-          <li><span class="step-num">4</span> Apply inverse qFT to first register</li>
-          <li><span class="step-num">5</span> Measure first register → obtain $\tilde\varphi$ within $2^{-t}$ of $\varphi$ ✓</li>
+          <li><span class="step-num">1</span> Prepare $t$ control qubits in $|0\rangle^{\otimes t}$ and target in $|u\rangle$</li>
+          <li><span class="step-num">2</span> Apply Hadamard to all $t$ control qubits → uniform superposition of all $2^t$ values</li>
+          <li><span class="step-num">3</span> Apply controlled-$U^{2^j}$ gates for $j=0,1,\ldots,t-1$: the $j$-th control qubit picks up phase $e^{2\pi i \varphi 2^j}$ when it is $|1\rangle$</li>
+          <li><span class="step-num">4</span> First register is now $\frac{1}{2^{t/2}}\sum_{k=0}^{2^t-1} e^{2\pi i\varphi k}|k\rangle = \text{qFT}|\tilde\varphi\rangle$ where $\tilde\varphi = 0.\varphi_1\varphi_2\cdots\varphi_t$</li>
+          <li><span class="step-num">5</span> Apply inverse qFT to first register</li>
+          <li><span class="step-num">6</span> Measure → obtain $\tilde\varphi$ with probability $\geq 1-\varepsilon$, accurate to $t$ binary places (i.e. $|\varphi - \tilde\varphi| \leq 2^{-t}$)</li>
         </ol>
+        <p>The number of control qubits $t$ sets the precision: $t = n + \lceil\log(2+1/(2\varepsilon))\rceil$ qubits gives error $\leq \varepsilon$ probability of failure. In Shor's factoring: phase estimation finds the period $r$ of $a^x \bmod N$ in $O(n^2 \log n \log\log n)$ total gates, where $n = \log_2 N$.</p>
       </div>
     </div>
 
@@ -1393,47 +1495,55 @@ $$e^{-i\pi/4}\cdot T \cdot HTH = R_{\hat{n}}(\theta), \quad \frac{\theta}{2\pi}\
       </div>
       <div class="card-body">
 
-        <h3>Overview</h3>
+        <h3>The Search Problem</h3>
         <div class="compare-grid">
           <div class="compare-box classical">
             <div class="compare-label">Classical Search</div>
-            $O(N)$ evaluations (unstructured)
+            $O(N)$ oracle calls (unstructured database)<br>On average, check $N/2$ items before finding answer
           </div>
           <div class="compare-box quantum">
             <div class="compare-label">Grover's Search</div>
-            $O(\sqrt{N/M})$ evaluations<br>(quadratic speedup)
+            $O(\sqrt{N/M})$ oracle calls<br>Quadratic speedup — provably optimal for QM
           </div>
         </div>
+        <p>We have an unstructured database of $N=2^n$ items, $M$ of which are "solutions" (marked items), and an oracle $f:\{0,\ldots,N-1\}\to\{0,1\}$ with $f(x)=1$ iff $x$ is a solution. There is no structure we can exploit — classically you must check items one-by-one. Grover's algorithm gets a provably quadratic speedup using quantum interference.</p>
 
-        <h3>Oracle</h3>
-        <ul>
-          <li>$f(x) = 1$ if $x$ is a solution, $0$ otherwise</li>
-          <li>With $|q\rangle = |-\rangle$: <strong>phase kickback</strong> $O|x\rangle = (-1)^{f(x)}|x\rangle$</li>
-        </ul>
+        <h3>The Phase Oracle and Phase Kickback</h3>
+        <p>The oracle is implemented as the unitary $O:|x\rangle|q\rangle \to |x\rangle|q\oplus f(x)\rangle$. To use <strong>phase kickback</strong>, prepare the ancilla in $|q\rangle = |{-}\rangle = (|0\rangle - |1\rangle)/\sqrt{2}$:</p>
+        <div class="math-block">$$O|x\rangle|{-}\rangle = (-1)^{f(x)}|x\rangle|{-}\rangle$$</div>
+        <p>The ancilla returns unchanged; the marking is encoded as a $-1$ phase on solutions. So we can effectively apply $O|x\rangle = (-1)^{f(x)}|x\rangle$ on the search register alone. This phase is invisible individually but will be exploited by interference in the next step.</p>
 
-        <h3>Algorithm</h3>
-        <ol class="steps">
-          <li><span class="step-num">1</span> Prepare $|\psi\rangle = H^{\otimes n}|0\rangle^{\otimes n} = \frac{1}{\sqrt{N}}\sum_x|x\rangle$</li>
-          <li><span class="step-num">2</span> Apply Grover operator $G$ exactly $R = \text{CI}\!\left[\frac{\pi}{4}\sqrt{\frac{N}{M}}\right]$ times</li>
-          <li><span class="step-num">3</span> Measure → obtain solution $x^*$ with error $\sim M/N \ll 1$</li>
-        </ol>
+        <h3>Geometric Picture — Rotation in 2D</h3>
+        <p>Define two orthogonal subspaces: $|\alpha\rangle$ = uniform superposition over <em>non-solutions</em>, $|\beta\rangle$ = uniform superposition over <em>solutions</em>. The initial state is:</p>
+        <div class="math-block">$$|\psi\rangle = H^{\otimes n}|0\rangle = \sqrt{\frac{N-M}{N}}\,|\alpha\rangle + \sqrt{\frac{M}{N}}\,|\beta\rangle = \cos\frac{\theta}{2}|\alpha\rangle + \sin\frac{\theta}{2}|\beta\rangle$$</div>
+        <p>where $\sin(\theta/2) = \sqrt{M/N}$. For small $M/N$, the angle $\theta/2 \approx \sqrt{M/N}$ is small — the initial state barely overlaps with solutions. The Grover operator rotates this state by $\theta$ towards $|\beta\rangle$ each iteration:</p>
+        <div class="math-block">$$G^k|\psi\rangle = \cos\!\left(\frac{2k+1}{2}\theta\right)|\alpha\rangle + \sin\!\left(\frac{2k+1}{2}\theta\right)|\beta\rangle$$</div>
 
-        <h3>Grover Operator G</h3>
-        <div class="math-block">$$G = \left(2|\psi\rangle\langle\psi| - I_n\right)\cdot O$$</div>
-        <ul>
-          <li>$O$ reflects about $|\alpha\rangle$ (non-solutions)</li>
-          <li>$(2|\psi\rangle\langle\psi|-I_n)$ reflects about $|\psi\rangle$</li>
-          <li>Net effect: rotation by angle $\theta$ toward solutions $|\beta\rangle$</li>
-        </ul>
-
-        <h3>Geometric Picture</h3>
-        <div class="math-block">$$|\psi\rangle = \cos\tfrac{\theta}{2}|\alpha\rangle + \sin\tfrac{\theta}{2}|\beta\rangle, \quad \sin\tfrac{\theta}{2} = \sqrt{\frac{M}{N}}$$
-$$G^k|\psi\rangle = \cos\!\left(\tfrac{2k+1}{2}\theta\right)|\alpha\rangle + \sin\!\left(\tfrac{2k+1}{2}\theta\right)|\beta\rangle$$</div>
+        <h3>The Grover Operator $G$</h3>
+        <div class="math-block">$$G = \underbrace{\left(2|\psi\rangle\langle\psi| - I\right)}_{\text{reflect about }|\psi\rangle} \cdot \underbrace{O}_{\text{reflect about }|\alpha\rangle}$$</div>
+        <p>Two reflections about non-parallel hyperplanes = a rotation. Each application of $G$ rotates the state vector by exactly $\theta$ towards the solution subspace $|\beta\rangle$. This geometric interpretation makes the algorithm's action completely transparent.</p>
         <div class="callout callout-green">
-          <div class="callout-label">Result</div>
-          After $R \approx \frac{\pi}{4}\sqrt{N/M}$ iterations, the state is close to $|\beta\rangle$ (equal superposition of solutions).
-          Probability of error $\leq M/N \ll 1$
+          <div class="callout-label">Why $O(\sqrt{N})$ Iterations?</div>
+          We need the angle $(2R+1)\theta/2 \approx \pi/2$, so $R \approx \pi/(2\theta) - 1/2$. For $M\ll N$: $\theta \approx 2\sqrt{M/N}$, giving:
+          $$R = \left\lfloor\frac{\pi}{4}\sqrt{\frac{N}{M}}\right\rfloor$$
+          After exactly $R$ iterations, $\sin^2((2R+1)\theta/2) \approx 1$, so measuring yields a solution with probability $\geq 1 - M/N$.
         </div>
+        <div class="callout callout-orange">
+          <div class="callout-label">Over-Rotation Failure</div>
+          Grover's algorithm is sensitive to the number of iterations. If you apply <em>too many</em> iterations, the state rotates <em>past</em> $|\beta\rangle$ and the success probability decreases again. If you apply exactly $2R$ iterations (twice too many for $M=1$), you essentially return to near $|\alpha\rangle$. Always use exactly $R = \lfloor\pi\sqrt{N/M}/4\rfloor$ iterations.
+        </div>
+
+        <h3>Unknown Number of Solutions</h3>
+        <p>If $M$ is unknown, you can't compute $R$ directly. The <strong>Boyer-Brassard-Høyer-Tapp (BBHT) algorithm</strong> handles this: randomly guess $r$ from $\{1,2,4,\ldots,\lceil\sqrt{N}\rceil\}$ (doubling each round), run Grover for $r$ steps, measure and check. Expected overhead is $O(\sqrt{N/M})$ total oracle calls — the same asymptotic complexity as the ideal case.</p>
+
+        <h3>Applications and Limits</h3>
+        <p>Grover's algorithm achieves a quadratic speedup for <em>any</em> problem reducible to unstructured search. Important applications include:</p>
+        <ul>
+          <li><strong>NP problems:</strong> search over $2^n$ possible certificates in $O(2^{n/2})$ quantum queries</li>
+          <li><strong>Collision finding:</strong> find two inputs $x\neq y$ with $f(x)=f(y)$ in $O(N^{1/3})$ queries (BHT algorithm)</li>
+          <li><strong>Cryptographic attacks:</strong> Grover halves the effective key length of symmetric ciphers — AES-128 becomes 64-bit secure quantum-theoretically; solution: use AES-256</li>
+        </ul>
+        <p>A fundamental theorem (Bennett-Bernstein-Brassard-Vazirani) proves that no quantum algorithm can do better than $\Omega(\sqrt{N})$ for unstructured search — Grover's algorithm is <em>optimal</em>.</p>
       </div>
     </div>
 
